@@ -1,0 +1,325 @@
+(lp0
+(Vx1
+p1
+F10.0
+tp2
+a(VcaptionRoot
+p3
+Vduck
+p4
+tp5
+a(VnrOfItems
+p6
+I20
+tp7
+a(VcolumnCaptions
+p8
+(lp9
+VcolumnA
+p10
+aVcolumnB
+p11
+aVcolumnC
+p12
+atp13
+a(VlabelRoot
+p14
+Vcar
+p15
+tp16
+a(VnrOfLevels
+p17
+I4
+tp18
+a(Vbranching
+p19
+I10
+tp20
+a(VcopyLabel1
+p21
+VFruit
+p22
+tp23
+a(VcopyLabel2
+p24
+VColor
+p25
+tp26
+a(VrightCopyList
+p27
+(lp28
+(lp29
+Vorange
+p30
+ag30
+aa(lp31
+Vapple
+p32
+aVgreen
+p33
+aa(lp34
+Vtomato
+p35
+aVred
+p36
+aatp37
+a(VmoveLabel1
+p38
+VWeather
+p39
+tp40
+a(VmoveLabel2
+p41
+VTemp
+p42
+tp43
+a(VleftMoveList
+p44
+(lp45
+tp46
+a(VrightMoveList
+p47
+(lp48
+tp49
+a(VleftTree
+p50
+(lp51
+(VCity
+p52
+(lp53
+(VNature
+p54
+(lp55
+(VPublic parks
+p56
+(lp57
+VGrass to play on
+p58
+aVTrees to climb in
+p59
+aVRobust flowers
+p60
+atp61
+a(VPrivate parks
+p62
+(lp63
+VGrass to look at
+p64
+aVTrees to sit under
+p65
+aVDelicate flowers
+p66
+atp67
+a(VGardens
+p68
+(lp69
+VGrass for domestic animals
+p70
+aVSmall trees
+p71
+aVExotic flowers
+p72
+atp73
+atp74
+atp75
+a(VBuildings
+p76
+(lp77
+(VReligious buildings
+p78
+(lp79
+VChurches
+p80
+aVMosks
+p81
+aVSynagogs
+p82
+atp83
+atp84
+atp85
+a(VrightTree
+p86
+(lp87
+(VSubjects
+p88
+(lp89
+(VBig subjects
+p90
+(lp91
+(VNoisy
+p92
+(lp93
+VJet
+p94
+aVSteel mill
+p95
+aVFreight train
+p96
+atp97
+a(VAudible
+p98
+(lp99
+VElephant
+p100
+aVTruck
+p101
+aVWhale
+p102
+atp103
+a(VSilent
+p104
+(lp105
+VMountain
+p106
+aVTree
+p107
+aVCloud
+p108
+atp109
+atp110
+a(VNot so big subjects
+p111
+(lp112
+(g92
+(lp113
+VMotor bike
+p114
+aVChain saw
+p115
+aVPA system
+p116
+atp117
+a(g98
+(lp118
+VHuman being
+p119
+aVCat
+p120
+aVDish washer
+p121
+atp122
+a(g104
+(lp123
+VLamp post
+p124
+aVBrick
+p125
+aVPlant
+p126
+atp127
+atp128
+a(VRather small subjects
+p129
+(lp130
+(g92
+(lp131
+VCricket
+p132
+aVWasp
+p133
+aVWhistle
+p134
+atp135
+a(g98
+(lp136
+VMosquito
+p137
+aVMouse
+p138
+aVMusic box
+p139
+atp140
+a(g104
+(lp141
+VStrawberry
+p142
+aVGlas of water
+p143
+aVPiece of cake
+p144
+atp145
+atp146
+atp147
+a(VHouses
+p148
+(lp149
+(VFlats
+p150
+(lp151
+tp152
+a(VBungalows
+p153
+(lp154
+tp155
+aVCampers
+p156
+atp157
+a(VRoads
+p158
+(lp159
+(VRoads for cars
+p160
+(lp161
+VHighways
+p162
+aVMain roads
+p163
+aVStreets
+p164
+atp165
+a(VRoads for bikes
+p166
+(lp167
+VSmooth bike roads
+p168
+aVBumpy bike roads
+p169
+aVMuddy trails
+p170
+atp171
+a(VRoads for pedestrians
+p172
+(lp173
+VSidewalks
+p174
+aVPromenades
+p175
+aVStairs
+p176
+atp177
+atp178
+a(VBusiness estate
+p179
+(lp180
+VShops
+p181
+aVOffices
+p182
+aVFactories
+p183
+atp184
+atp185
+a(VitRainsOutside
+p186
+I01
+tp187
+a(ViWearAnUmbrella
+p188
+I00
+tp189
+a(VfoodMarker
+p190
+VMeat
+p191
+tp192
+a(VdrinkMarker
+p193
+VCoffee
+p194
+tp195
+a(VshowWhatMarker
+p196
+VFood
+p197
+tp198
+a.

@@ -1,0 +1,30 @@
+<h3> Tutorial example CalculatorRpn </h3>
+
+<p>
+Files
+<ul>
+<a href="calculatorRpn.py"> calculatorRpn.py </a>
+</ul>
+
+In tutorial example CalculatorRpn the Pull pattern is used to construct a fairly functional calculator.
+
+<p>
+The example illustrates the following points:
+<ol>
+<li> Nodes can be agregated into lists, dicts etc. to create compact code.
+<li> The same holds for views. 
+<li> Node.tagged enables you to attach arbitrary information to a Node, apart from its new and old value.
+<li> Node.old can be used to access the state of a Node before the most recent event triggered by the user.
+</ol>
+
+<p>
+Remark: The calculator is of the RPN or postfix type, expecting as input format e.g.
+
+<p>
+3 [enter] 5 *
+
+<p>
+rather than
+
+<p>
+3 * 5 =
