@@ -8,7 +8,7 @@ def read (*paths):
 
 setup (
 	name = 'Eden',
-	version = '2.1.2',
+	version = '2.1.3',
 	description = 'Eden - Event Driven Evaluation Nodes',
 	long_description = (
 		read ('README.md') + '\n\n' +
