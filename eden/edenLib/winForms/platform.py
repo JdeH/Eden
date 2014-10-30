@@ -12,7 +12,6 @@
 
 import clr
 import os
-import sitecustomize
 
 clr.AddReference ('System.Windows.Forms')
 

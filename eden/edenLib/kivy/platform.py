@@ -9,4 +9,3 @@
 # See the QQuickLicence for details.
 
 import os
-import sitecustomize
