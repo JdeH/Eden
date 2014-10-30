@@ -8,7 +8,7 @@ def read (*paths):
 
 setup (
 	name = 'Eden',
-	version = '2.1.3',
+	version = '2.1.4',
 	description = 'Eden - Event Driven Evaluation Nodes',
 	long_description = (
 		read ('README.md') + '\n\n' +
@@ -21,7 +21,7 @@ setup (
 	author_email = 'jacques.de.hooge@qquick.org',
 	packages = ['eden'],	
 	include_package_data = True,
-	install_requires = ['Kivy'],
+	install_requires = ['Kivy', 'Cython'],
 	classifiers = [
 		'Development Status :: 4 - Beta',
 		'Intended Audience :: Developers',
