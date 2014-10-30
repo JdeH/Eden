@@ -2,9 +2,9 @@
 PRIVATE = 'private'
 NONE = 'none'
 ASK = 'ask'
-COPY = py'
+COPY = 'copy'
 MOVE = 'move'
-LIN'coK = 'link'
+LINK = 'link'
 REFUSE_DROP = 'refuse_drop'
 # dnd types
 DND_TEXT = 'DND_Text'
