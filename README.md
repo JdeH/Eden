@@ -16,6 +16,26 @@ Purpose
 Eden is a library that allows rapid declarative construction of applications.
 
 
+Installation
+============
+
+
+Put the eden (lowercase!) subdirectory of Eden into the site-packages directory of the Python version you wish to use. If you want to install it under multiple Python versions, e.g. IronPython 2.7 and CPython 2.7, you can use a symlink (so NOT a shortcut, google for 'mklink').
+
+N.B.
+The WinForms (stable) version works with IronPython 2.7.
+The Kyvi version (under development) works with CPython 2.7, you can e.g. use the Python 2.7 that comes with Portable Kivy for Windows.
+The Kyvi version should also run under Linux, although that is only tested infrequently.
+
+
+Recent changes
+==============
+
+Drag and drop added to Kivy TreeView.
+API of D&D much simplified, compared to WinForms version.
+Kivy testapp TreeViewDragDrop.py added.
+
+
 How does it work
 ================
 
@@ -62,14 +82,6 @@ Status
 
 Eden for IronPython + WinForms has been used for production programming for multiple years now by several people.
 Eden for CPython + Kivy is in the early stages of development.
-
-
-Recent changes
-==============
-
-XML configuration files added.
-
-Kivy version initiated.
 
 
 Known bugs

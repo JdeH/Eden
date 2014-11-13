@@ -14,7 +14,7 @@ from eden import *
 
 store = Store ()
 
-leftTreeNode = store.add (Node ([
+topTreeNode = store.add (Node ([
 	('City', [
 		('Buildings', [
 			('Houses', ['Flats', 'Bungalows', 'Campers']),
@@ -32,9 +32,9 @@ leftTreeNode = store.add (Node ([
 			('Gardens', ['Grass for domestic animals', 'Small trees', 'Exotic flowers'])
 		])
 	])
-]), 'leftTree')
+]), 'topTree')
 
-rightTreeNode = store.add (Node ([
+bottomTreeNode = store.add (Node ([
 	('Subjects', [
 		('Big subjects', [
 			('Noisy', ['Jet', 'Steel mill', 'Freight train']),
@@ -52,11 +52,14 @@ rightTreeNode = store.add (Node ([
 			('Silent', ['Strawberry', 'Glas of water', 'Piece of cake'])
 		])
 	])
-]), 'rightTree')
+]), 'bottomTree')
 
-mainView = MainView (HGridView ([
-	TreeView (rootNode = 'Left Tree', treeNode = leftTreeNode),
-	TreeView (rootNode = 'Right Tree', treeNode = rightTreeNode),
+mainView = MainView (VGridView ([
+	LabelView ('Wait a second close to the starting point of a drag to copy rather than move.'),
+	LabelView ('Wait a second close to the end point of a drag to insert a child rather than a sibling.'),
+	LabelView ('You may also reorder trees.'),
+	TreeView (rootNode = 'Top Tree', treeNode = topTreeNode), 12,
+	TreeView (rootNode = 'Bottom Tree', treeNode = bottomTreeNode), 12
 ]), 'Drag & Drop between TreeViews')
 
 mainView.execute ()
