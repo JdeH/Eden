@@ -1,0 +1,30 @@
+<h3> Tutorial example HelloNode </h3>
+
+<p>
+Files
+<ul>
+<a href="helloNode.py"> helloNode.py </a>
+</ul>
+
+In tutorial example HelloNode.py a Node is introduced.
+
+Nodes, rather than views, are the centerpiece of Eden (Event driven evaluation nodes).
+They facilitate
+
+<ul>
+<li> Dynamic behaviour (shown in this example)
+<li> Functional dependencies (shown later)
+</ul>
+
+Furthermore
+
+<ul>
+<li> The centrally located CLabelView is replaced by a TextView.
+<li> Four CLabelViews are positioned around it.
+Their text value follows the value of the TextView, since they are connected to the same Node instance.
+<li> FillerViews are inserted before the top and bottom CLabelViews.
+This causes the top and bottom CLabelViews to be in the centre column of the GridView,
+rather than in the left column.
+</ul>
+
+If you edit the contents of the TextView, you'll see the caption and the labels change after you press [Enter].

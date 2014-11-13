@@ -27,14 +27,13 @@ treeNode = Node ([
 selectedPathNode = Node ([])
 
 selectedTreeNode = Node ()
-selectedTreeNode.dependsOn ([selectedPathNode], lambda: cloneTree (treeNode.new, selectedPathNode.new))
+selectedTreeNode.dependsOn ([selectedPathNode, treeNode], lambda: cloneTree (treeNode.new, selectedPathNode.new))
 
 mainView = MainView (VGridView ([
-	TreeView (treeNode, selectedPathNode),
-	TreeView (treeNode, selectedPathNode),
-	TextView (treeNode),
-	TreeView (selectedTreeNode),
-	TextView (selectedTreeNode)
+	TreeView (rootNode = 'Whole tree', treeNode = treeNode, selectedPathNode = selectedPathNode), 7,
+	LabelView ('Try editing the nodes in the textview...'),
+	TextView (treeNode), 
+	TreeView (rootNode = 'Selected branch', treeNode = selectedTreeNode), 7
 ]), selectedTreeNode)
 
 mainView.execute ()

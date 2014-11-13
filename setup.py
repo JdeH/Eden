@@ -8,7 +8,7 @@ def read (*paths):
 
 setup (
 	name = 'Eden',
-	version = '2.1.5 (Kivy TreeView Drag & Drop added)',
+	version = '2.1.5 (Kivy TreeView Drag&Drop added, testprogs repaired)',
 	description = 'Eden - Event Driven Evaluation Nodes',
 	long_description = (
 		read ('README.md') + '\n\n' +

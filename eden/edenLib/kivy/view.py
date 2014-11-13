@@ -13,7 +13,7 @@ import datetime
 import logging
 
 from kivy.logger import Logger
-Logger.setLevel(logging.ERROR)
+# Logger.setLevel(logging.ERROR)
 
 import kivy
 kivy.require('1.8.0') # replace with your current kivy version !
@@ -281,8 +281,8 @@ class EmptyView (ViewBase):
 		pass
 
 class LabelView (ViewBase):
-	def __init__ (self, captionNode = None):
-		ViewBase.__init__ (self)	
+	def __init__ (self, captionNode = None, enabledNode = None):
+		ViewBase.__init__ (self, enabledNode)	
 		self.captionNode = getNode (captionNode)
 		
 	def bareCreateWidget (self):
@@ -297,6 +297,7 @@ class LabelView (ViewBase):
 
 class ButtonView (ViewBase):
 	def __init__ (self, actionNode = None, captionNode = None):
+		ViewBase.__init__ (self)
 		self.actionNode = getNode (actionNode)
 		self.captionNode = getNode (captionNode)
 		

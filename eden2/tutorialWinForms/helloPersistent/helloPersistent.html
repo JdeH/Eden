@@ -1,0 +1,32 @@
+<h3> Tutorial example HelloPersistent </h3>
+
+<p>
+Files
+<ul>
+<a href="helloPersistent.py"> helloPersistent.py </a>
+</ul>
+
+In tutorial example HelloPersistent the contents of a Node are made persistent by adding it to a Store.
+Note that Store.add returns the Node for assignment to the nodeStore variable.
+
+<p>
+Making Nodes persistent requires the following steps
+
+<ul>
+<li> Instantiate a Store.
+<li> Create one or more Nodes, adding to the Store only those Nodes that you want to be persistent.
+<li> Just before entering the event loop, load the Store from file.
+<li> Just after leaving the event loop, save the Store to file.
+</ul>
+
+<p>
+Remark 1: Although not stricktly needed, an explicit key is supplied as a second parameter to Store.add.
+This allows existing Nodes to be left out and new Nodes to be introduced at changing program versions.
+If new nodes are stored using new keys, Store files written by previous program versions can still be loaded.
+Implicit keys of newly introduced Nodes on the other hand,
+may clash with implicit keys of Nodes that were left out, but whose values are still in the store.
+
+<p>
+Remark 2: Use of multiple Stores is permitted.
+In fact views exhibiting a layout state have their own Store, to which they are implicitly added.
+It is persisted to views.store by default.
