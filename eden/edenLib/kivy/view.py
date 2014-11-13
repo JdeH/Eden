@@ -1,4 +1,4 @@
-# Copyright (C) 2005, 2006 Jacques de Hooge, Geatec Engineering
+# Copyright (C) 2005 - 2014 Jacques de Hooge, Geatec Engineering
 #
 # This program is free software.
 # You can use, redistribute and/or modify it, but only under the terms stated in the QQuickLicence.
@@ -28,6 +28,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.treeview import TreeView as KivyTreeView, TreeViewNode, TreeViewLabel
+from kivy.uix.listview import ListView as KivyListView
 from kivy.clock import Clock
 
 from eden.edenLib.node import *
@@ -346,14 +347,15 @@ class TreeView (ViewBase):	# Views a <tree>
 		enabledNode = None,
 		contextMenuView = None,
 		transformer = None,
-		expansionLevel = None,
 		hintGetter = None,
+		expansionLevelNode = None,
 		dragLabelGetter = None,
 		dragValueGetter = None,
 		dropLabelGetter = None,
 		dropValueGetter = None,
 		dragResultGetter = None,
 		dropResultGetter = None,
+		key = None,
 		tweaker = None
 	):
 		ViewBase.__init__ (self, enabledNode)
@@ -372,6 +374,7 @@ class TreeView (ViewBase):	# Views a <tree>
 		self.dropLabelGetter = getFunction (dropLabelGetter, self.defaultDropLabelGetter)
 		self.dropValueGetter = getFunction (dropValueGetter, self.defaultDropValueGetter)
 		self.dropResultGetter = getFunction (dropResultGetter, self.defaultDropResultGetter)
+		self.key = key,
 		self.tweaker = tweaker
 		
 		self.pointedTreeViewNode = None
@@ -682,8 +685,74 @@ class TreeView (ViewBase):	# Views a <tree>
 			select [0] = False
 			return True
 			
-		return False		
-				
+		return False
+		
+# <list> = [<item>, ...]
+# <item> = <field> | [<field>, ...]
+
+class ListView (ViewBase):
+	Neutral, Next, Previous, Up, Down, Insert, Delete, Undo = range (8)
+
+	# --- Constructor and widget creation method, like supported by all views
+
+	def __init__ (
+		self,
+		headerNode = None,
+		listNode = None,
+		pointedListNode = None,
+		selectedListNode = None,
+		checkedListNode = None,
+		enabledNode = None,
+		contextMenuView = None,
+		transformer = None,
+		hintGetter = None,
+		multiSelectNode = None,
+		sortColumnNumberNode = None,
+		pointedColumnIndexNode = None,
+		clickedColumnIndexNode = None,
+		visibleColumnsNode = None,
+		editViews = None,
+		exitStateNode = None,
+		actionStateNode = None,
+		dragLabelGetter = None,
+		dragValueGetter = None,
+		dropLabelGetter = None,
+		dropValueGetter = None,
+		dragResultGetter = None,
+		dropResultGetter = None,
+		key = None,
+		tweaker = None
+	):
+		ViewBase.__init__ (self, enabledNode)
+	
+		self.headerNode = getNode (headerNode)
+		self.listNode = getNode (listNode, Node ([]))
+		self.pointedListNode = getNode (pointedListNode, Node ([]))
+		self.selectedListNode = getNode (selectedListNode, Node ([]))
+		self.checkedListNode = getNode (checkedListNode, Node ([]))
+		self.contextMenuView = contextMenuView
+		self.transformer = transformer
+		self.hintGetter = hintGetter = getFunction (hintGetter, lambda: None)
+		self.multiSelectNode = getNode (multiSelectNode, Node (False))
+		self.sortColumnNumberNode = getNode (sortColumnNumberNode, Node (1))
+		self.pointedColumnIndexNode = getNode (pointedColumnIndexNode, Node (0))
+		self.clickedColumnIndexNode = getNode (clickedColumnIndexNode, Node (0))
+		self.visibleColumnsNode = getNode (visibleColumnsNode, Node (0)),
+		self.editViews = editViews,
+		self.exitStateNode = getNode (exitStateNode, Node ('???'))
+		self.actionStateNode = getNode (actionStateNode, Node ('???'))
+		# self.dragLabelGetter = getFunction (dragLabelGetter, self.defaultDragLabelGetter)
+		# self.dragValueGetter = getFunction (dragValueGetter, self.defaultDragValueGetter)
+		# self.dragResultGetter = getFunction (dragResultGetter, self.defaultDragResultGetter)
+		# self.dropLabelGetter = getFunction (dropLabelGetter, self.defaultDropLabelGetter)
+		# self.dropValueGetter = getFunction (dropValueGetter, self.defaultDropValueGetter)
+		# self.dropResultGetter = getFunction (dropResultGetter, self.defaultDropResultGetter)
+		self.key = key
+		tweaker = None
+		
+	def bareCreateWidget (self):
+		self.widget = KivyListView (item_strings = [str (item) for item in self.listNode.new])
+
 class SpanLayout (RelativeLayout):
 	def __init__ (self):
 		RelativeLayout.__init__ (self)

@@ -1,5 +1,5 @@
 # Copyright (C) 2006 Fugro-Jason
-# Copyright (C) 2005, 2006 Jacques de Hooge, Geatec Engineering
+# Copyright (C) 2005 - 2014 Jacques de Hooge, Geatec Engineering
 #
 # This program is free software.
 # You can use, redistribute and/or modify it, but only under the terms stated in the QQuickLicence.

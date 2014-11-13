@@ -8,10 +8,23 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the QQuickLicence for details.
 
-# hello.py
+# listView.py
 
 from eden import *
 
-mainView = MainView (LabelView ('Hello'))
+listNode = Node ([
+	['ape', 'aap', 'affe', 'singe'],
+	['note', 'noot', 'nusz', 'detresse'],
+	['mice', 'mies', 'maus', 'mais'],
+	['vim', 'wim', 'wilhelm', 'schleifmittel'],
+	['sus', 'zus', 'schwester', 'sous'],
+	['jet', 'jet', 'duesenflugzeug', 'concorde'],
+])
+
+selectedPathNode = Node ([])
+
+mainView = MainView (VGridView ([
+	ListView (listNode = listNode)
+]), 'ListView')
 
 mainView.execute ()
