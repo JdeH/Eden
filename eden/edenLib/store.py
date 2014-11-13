@@ -10,6 +10,7 @@
 
 from cPickle import *
 from eden.edenLib.base import *
+from eden.edenLib.util import *
 from eden.edenLib.node import *
 
 class Store:

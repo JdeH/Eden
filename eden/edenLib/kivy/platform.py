@@ -8,4 +8,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the QQuickLicence for details.
 
-import os
+import traceback
+
+def getStackTrace (exception):
+	return traceback.format_exc ()
+	

@@ -12,7 +12,7 @@ from eden.edenLib.base import *
 from eden.edenLib.util import *
 
 if 'WinForms' in application.platform:
-	from eden.edenLib.winForms.platform import *
-		
+	from eden.edenLib.winForms.util import *
+			
 elif 'Kivy' in application.platform:
-	from eden.edenLib.kivy.platform import *
+	from eden.edenLib.kivy.util import *

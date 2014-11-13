@@ -80,6 +80,7 @@ eden/externalPackages/dragAndDrop/tclPart/tkdnd2.6/tkdnd_windows.tcl
 eden/testKivy/calculatorRpn/calculatorRpn.html
 eden/testKivy/calculatorRpn/calculatorRpn.py
 eden/testKivy/hello/hello.py
+eden/testKivy/treeView/treeView.py
 eden/tutorial/tutorial.html
 eden/tutorial/calculatorPull/calculatorPull.html
 eden/tutorial/calculatorPull/calculatorPull.py

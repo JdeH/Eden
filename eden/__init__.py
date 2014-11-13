@@ -9,6 +9,7 @@
 # See the QQuickLicence for details.
 
 from eden.edenLib.base import *
+from eden.edenLib.util import *
 from eden.edenLib.xml import *
 
 try:

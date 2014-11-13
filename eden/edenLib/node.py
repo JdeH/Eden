@@ -11,6 +11,7 @@
 import sys
 
 from eden.edenLib.base import *
+from eden.edenLib.util import *
 
 currentEvent = UniqueNumber (1)
 triggerNode = CallableValue ()
@@ -119,7 +120,7 @@ class Node (object):							# Node representing atomary partial state in a state 
 	def evaluate (self):							# Evaluation phase, two way propagation
 		self.printTrace ('Evaluate, start', 'event')
 
-		if self.event == 0:	# So only nodes that ly on the trigger path are REALLY ever computed!
+		if self.event == 0:	# So only nodes that lay on the trigger path are REALLY ever computed!
 			if self.evaluating:
 				print 'Event: ', self.event
 				print 'Previous value: ', self.previousValue
@@ -201,11 +202,11 @@ class Node (object):							# Node representing atomary partial state in a state 
 				self.propagate ()													#	Propagate new value to dependent nodes
 				transactor.act ()													#	Late, since actions may need node values and may even enter event loops
 			
-		except Refusal, refusal:
+		except Refusal as refusal:
 			handleNotification (refusal)
 			transactor.rollBack ()
 			
-		except Exception, exception:
+		except Exception as exception:	# This is a barebones Python exception, must be converted to Eden exception
 			handleNotification (Objection (exMessage (exception), report = exReport (exception)))
 			transactor.rollBack ()
 			
@@ -277,11 +278,11 @@ class Link:	# Link between a node and a particular bareRead / bareWrite pair of 
 					
 				self.writing = False				#		Remember not busy writing anymore
 				
-def getNode (valueOrNode):
-	if not valueOrNode is None:	# e.g. valueOrNode == False should lead to condition == True
+def getNode (valueOrNode, resultIfNone = None):
+	if valueOrNode is None:	# e.g. valueOrNode == False should lead to condition == True
+		return resultIfNone
+	else:
 		if valueOrNode.__class__ == Node:
 			return valueOrNode
 		else:	
 			return Node (valueOrNode)
-	else:
-		return None

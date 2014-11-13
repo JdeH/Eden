@@ -52,7 +52,7 @@ Although the tutorial examples are simple for anyone to comprehend, they by far 
 Moreover they are too small to reveal issues of overall program organisation, like the use of the Module mechanism.
 Using Eden in an effective way for a non-trivial app has a steep (but short) learing curve.
 It has proven feasible to get a "fresh" developer upto speed in a few days of side by side tutoring. There's a real need for freely available elaborated example, though.
-Currently I concentrate upon the CPython + Kivy version, since mobile- and tablet platforms are most of the action is. One public domain application that uses the IronPython + WinForms version is Wave (see www.qquick.org).
+Currently I concentrate upon the CPython + Kivy version, since mobile- and tablet platforms are where most of the action is. One public domain application that uses the IronPython + WinForms version is Wave (see www.qquick.org).
 It is, however, not yet complete and to specialistic to serve as an example.
 A killer app would help. As soon as the CPython + Kivy version has some body, I hope to come up with a free multiplatform app that proves the point as well as is suitable as an elaborated example.
 
@@ -111,7 +111,7 @@ Future
 
 Plans are to build out and fully document Eden and stay committed to it for a long time to come.
 However not any, even implied guarantee is made with respect to its continuity.
-Time will have to prove whether they acquire mindshare.
+Time will have to prove whether it acquires mindshare.
 
 There exists a proprietary commercial port of Eden to Qt using PyQt.
 It runs on Linux and Windows and was made and is owned by a third party.
@@ -124,9 +124,9 @@ Co-Development
 ==============
 
 The code of the Eden project is hosted by GitHub.
-The plan is to involve more developers as soon as possible.
+The plan is to involve more developers as soon as the Kivy version is well underway.
 Completing the TkInter version e.g. would be great...
-Coding for Eden requires solid mastery of the Node/Link/View concepts, including rollback and cyclic dependencies.
+Coding for Eden requires thorough understanding of the Node/Link/View concepts, including rollback and cyclic dependencies.
 The essence is in the Node library module.
 Although it is a small, extensively commented module, it is quite hard grab the nifty details.
 A very concise description is what I'll have to come up with...

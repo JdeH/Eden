@@ -10,6 +10,6 @@
 
 from eden import *
 
-application.projectDirectory = application.edenDirectory + '/tutorial/demo/project'
+application.projectDirectory = application.edenDirectory + '/tutorialWinForms/demo/project'
 application.bitMapDirectories = [application.edenLibDirectory + '/icons']
 

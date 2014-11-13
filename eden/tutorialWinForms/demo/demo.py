@@ -404,7 +404,7 @@ leftTree = store.add (Node ([
 		('Buildings', [
 			('Houses', ['Flats', 'Bungalows', 'Campers']),
 			('Business estate', ['Shops', 'Offices', 'Factories']),
-			('Religious buildings', ['Churches', 'Mosks', 'Synagogs'])
+			('Religious buildings', ['Churches', 'Mosques', 'Synagogues'])
 		]), 
 		('Roads', [
 			('Roads for cars', ['Highways', 'Main roads', 'Streets']),

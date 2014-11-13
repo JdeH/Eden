@@ -9,6 +9,7 @@
 # See the QQuickLicence for details.
 
 from eden.edenLib.base import *
+from eden.edenLib.util import *
 
 if 'WinForms' in application.platform:
 	from eden.edenExtra.winForms.tweakers import *

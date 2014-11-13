@@ -17,6 +17,7 @@ from System import Drawing
 from System.Windows import Forms
 
 from eden.edenLib.base import *
+from eden.edenLib.util import *
 from eden.edenLib.view import *
 
 class Font:
