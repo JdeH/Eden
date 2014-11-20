@@ -726,7 +726,6 @@ class ListItemWidget (ListItemButton):
 		self.max_lines = 1
 		self.halign = 'center'
 		self.size_hint_x = None
-		self.listView.columns [self.fieldIndex] .append (self)
 		
 		self.bind (size = self.onSize)
 		
@@ -808,13 +807,9 @@ class ListView (ViewBase):
 		self.headerStripWidth = 2 * 4	# Always choose even, since it will be halved to achieve right item width
 		
 		self.initListHeadWidgets ()
-		self.initColumns ()
 		
 	def initListHeadWidgets (self):
-		self.listHeadWidgets = [[] for header in self.headerNode.new]
-		
-	def initColumns (self):
-		self.columns = [[] for header in self.headerNode.new]
+		self.listHeadWidgets = [None for header in self.headerNode.new]
 		
 	def bareCreateWidget (self):
 		def rowBuilder (rowIndex, item):
@@ -833,17 +828,31 @@ class ListView (ViewBase):
 				} for index in range (len (self.headerNode.new))]
 			}
 			
-		self.listAdapter = ListAdapter (data = self.listNode.new, selection_mode = 'multiple', args_converter = rowBuilder, cls = CompositeListItem, sorted_keys = [])
+		self.listAdapter = ListAdapter (data = [], selection_mode = 'multiple', args_converter = rowBuilder, cls = CompositeListItem, sorted_keys = [])
 		
+		self.widget = BoxLayout (orientation = 'vertical')
+		self.headerWidget = BoxLayout (height = 25, size_hint_y = None)
+		for index, head in enumerate (self.headerNode.new):
+			listHeadWidget = ListHeadWidget (text = str (head), height = 25, size_hint_y = None, listView = self, fieldIndex = index)
+			if index == len (self.headerNode.new) - 1:
+				self.headerWidget.add_widget (listHeadWidget)
+			else:
+				splitter = Splitter (sizable_from = 'right', strip_size = self.headerStripWidth, height = 25, size_hint_y = None)
+				splitter.add_widget (listHeadWidget)
+				self.headerWidget.add_widget (splitter)
+				
+		self.widget.add_widget (self.headerWidget)
+		self.widget.add_widget (KivyListView (adapter = self.listAdapter))
+				
 		def bareReadList (params):
 			listToSort = self.listNode.new	# We're still before the change event, so don't use self.listNode.old	
 			self.listNode.change (sortList (listToSort, self.sortColumnNumberNode.new), self.transformer)
 		
 		def bareWriteList ():
-			self.initColumns ()
 			self.listAdapter.data = self.listNode.new
 			
 		self.listLink = Link (self.listNode, bareReadList, bareWriteList)
+		self.listLink.write ()
 		
 		if not hasattr (self.selectedListNode, 'getter'):
 			self.selectedListNode.dependsOn ([self.listNode], self.interestingItemList)
@@ -856,8 +865,8 @@ class ListView (ViewBase):
 				print
 				selectedList = []
 				for itemIndex, item in enumerate (self.listNode.new):
-					for column in self.columns:
-						if column [itemIndex] .is_selected:
+					for fieldWidget in self.listAdapter.get_view (itemIndex) .children:
+						if fieldWidget.is_selected:
 							selectedList.append (item [:])	# Item isn't always a list, can also be a single field!
 							break	# Add only once, if any view of a row is selected
 				for item in selectedList:
@@ -887,24 +896,11 @@ class ListView (ViewBase):
 			self.listNode.follow (sortList (listToSort, self.sortColumnNumberNode.new), self.transformer)
 		
 		self.sortColumnNumberLink = Link (self.sortColumnNumberNode, bareReadSortColumnNumber, None)
-		
-		self.widget = BoxLayout (orientation = 'vertical')
-		self.headerWidget = BoxLayout (height = 25, size_hint_y = None)
-		for index, head in enumerate (self.headerNode.new):
-			listHeadWidget = ListHeadWidget (text = str (head), height = 25, size_hint_y = None, listView = self, fieldIndex = index)
-			if index == len (self.headerNode.new) - 1:
-				self.headerWidget.add_widget (listHeadWidget)
-			else:
-				splitter = Splitter (sizable_from = 'right', strip_size = self.headerStripWidth, height = 25, size_hint_y = None)
-				splitter.add_widget (listHeadWidget)
-				self.headerWidget.add_widget (splitter)
 				
-		self.widget.add_widget (self.headerWidget)
-		self.widget.add_widget (KivyListView (adapter = self.listAdapter))
-		
 	def adaptItemSizes (self, fieldIndex):
-		for listItemWidget in self.columns [fieldIndex]:
-			listItemWidget.onSize ()
+		for itemIndex in range (len (self.listNode.new)):
+			fieldWidget = self.listAdapter.get_view (itemIndex) .children [-(fieldIndex + 1)]
+			fieldWidget.onSize ()		
 
 	def interestingItemList (self):							# Order n rather than n**2  !!! Tidyup!!!
 		if application.initializing:
