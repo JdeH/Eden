@@ -160,7 +160,7 @@ def printNotificationReport (notification):
 	print notification.caption + ':', notification.report
 	
 app.notificationLogger = printNotificationReport
-app.logNotifications = False
+app.logNotifications = True
 
 def printNotificationMessage (notification):
 	print notification.caption + ':', notification.message

@@ -8,7 +8,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the QQuickLicence for details.
 
-
 import datetime
 import logging
 
@@ -24,11 +23,14 @@ from kivy.uix.widget import Widget
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
+from kivy.uix.splitter import Splitter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.treeview import TreeView as KivyTreeView, TreeViewNode, TreeViewLabel
-from kivy.uix.listview import ListView as KivyListView
+from kivy.uix.listview import ListView as KivyListView, ListItemLabel, ListItemButton, CompositeListItem
+from kivy.adapters.dictadapter import ListAdapter
 from kivy.clock import Clock
 
 from eden.edenLib.node import *
@@ -366,7 +368,7 @@ class TreeView (ViewBase):	# Views a <tree>
 		self.selectedPathNode = getNode (selectedPathNode, Node ([]))
 		self.contextMenuView = contextMenuView
 		self.transformer = transformer
-		self.expansionLevelNode = getNode (expansionLevel)
+		self.expansionLevelNode = getNode (expansionLevelNode)
 		self.hintGetter = getFunction (hintGetter, lambda: None)
 		self.dragLabelGetter = getFunction (dragLabelGetter, self.defaultDragLabelGetter)
 		self.dragValueGetter = getFunction (dragValueGetter, self.defaultDragValueGetter)
@@ -630,7 +632,7 @@ class TreeView (ViewBase):	# Views a <tree>
 		if not treeViewNode:
 			return None
 		
-		rootBranch  = self.treeNode.new [0]
+		rootBranch	= self.treeNode.new [0]
 		
 		if self.transformer:
 			return treeViewNode.tag
@@ -690,6 +692,59 @@ class TreeView (ViewBase):	# Views a <tree>
 # <list> = [<item>, ...]
 # <item> = <field> | [<field>, ...]
 
+class ListHeadWidget (Label):
+	def __init__ (self, **args):
+		Label.__init__ (self, **args)
+		self.listView = args ['listView']
+		self.fieldIndex = args ['fieldIndex']
+		self.max_lines = 1
+		self.halign = 'center'
+		self.extraWidth = self.listView.headerStripWidth / 2 if self.fieldIndex in (0, len (self.listView.headerNode.new) - 1) else self.listView.headerStripWidth
+		self.listView.listHeadWidgets [self.fieldIndex] = self
+				
+		def onSize (*args):
+			self.listView.adaptItemSizes (self.fieldIndex)
+			self.text_size = (self.width, None)
+						
+		self.bind (size = onSize)
+		
+		def touchDown (*args):
+			if self.collide_point (*application.pointerPosition):
+				self.listView.sortColumnNumberLink.read (self.fieldIndex)
+
+		self.bind (on_touch_down = touchDown)
+			
+	def getGrossWidth (self):
+		return self.width + self.extraWidth
+						
+class ListItemWidget (ListItemButton):
+	def __init__ (self, **args):
+		ListItemButton.__init__ (self, **args)
+		self.listView = args ['listView']
+		self.fieldIndex = args ['fieldIndex']
+		self.rowIndex = args ['rowIndex']
+		self.max_lines = 1
+		self.halign = 'center'
+		self.size_hint_x = None
+		self.listView.columns [self.fieldIndex] .append (self)
+		
+		self.bind (size = self.onSize)
+		
+		def onSelect (*args):
+			if self.is_selected:
+				print 'select', self.rowIndex, self.fieldIndex
+				self.listView.listAdapter.get_view (self.rowIndex) .select_from_child (self)
+			else:
+				print 'deselect', self.rowIndex, self.fieldIndex
+				self.listView.listAdapter.get_view (self.rowIndex) .deselect_from_child (self)
+			self.listView.selectedListLink.read (self.rowIndex)
+		
+		self.bind (is_selected = onSelect)
+
+	def onSize (self, *args):	# Member, since it is also called by ListView.adaptItemSizes, initiated by a head resize
+		self.width = self.listView.listHeadWidgets [self.fieldIndex] .getGrossWidth ()
+		self.text_size = (self.width, None)
+
 class ListView (ViewBase):
 	Neutral, Next, Previous, Up, Down, Insert, Delete, Undo = range (8)
 
@@ -748,11 +803,142 @@ class ListView (ViewBase):
 		# self.dropValueGetter = getFunction (dropValueGetter, self.defaultDropValueGetter)
 		# self.dropResultGetter = getFunction (dropResultGetter, self.defaultDropResultGetter)
 		self.key = key
-		tweaker = None
+		self.tweaker = None
+		
+		self.headerStripWidth = 2 * 4	# Always choose even, since it will be halved to achieve right item width
+		
+		self.initListHeadWidgets ()
+		self.initColumns ()
+		
+	def initListHeadWidgets (self):
+		self.listHeadWidgets = [[] for header in self.headerNode.new]
+		
+	def initColumns (self):
+		self.columns = [[] for header in self.headerNode.new]
 		
 	def bareCreateWidget (self):
-		self.widget = KivyListView (item_strings = [str (item) for item in self.listNode.new])
+		def rowBuilder (rowIndex, item):
+			return {
+				'text': 'aap',
+				'size_hint_y': None,
+				'height': 25,
+				'cls_dicts': [{
+					'cls': ListItemWidget,
+					'kwargs': {
+						'text': item [index],
+						'listView': self,
+						'fieldIndex': index,
+						'rowIndex': rowIndex,
+					}
+				} for index in range (len (self.headerNode.new))]
+			}
+			
+		self.listAdapter = ListAdapter (data = self.listNode.new, selection_mode = 'multiple', args_converter = rowBuilder, cls = CompositeListItem, sorted_keys = [])
+		
+		def bareReadList (params):
+			listToSort = self.listNode.new	# We're still before the change event, so don't use self.listNode.old	
+			self.listNode.change (sortList (listToSort, self.sortColumnNumberNode.new), self.transformer)
+		
+		def bareWriteList ():
+			self.initColumns ()
+			self.listAdapter.data = self.listNode.new
+			
+		self.listLink = Link (self.listNode, bareReadList, bareWriteList)
+		
+		if not hasattr (self.selectedListNode, 'getter'):
+			self.selectedListNode.dependsOn ([self.listNode], self.interestingItemList)
+			
+		def bareReadSelectedList (params):
+			print 'bareReadSelectedList'
+			if not self.listLink.writing:
+				for item in self.listNode.new:
+					print item
+				print
+				selectedList = []
+				for itemIndex, item in enumerate (self.listNode.new):
+					for column in self.columns:
+						if column [itemIndex] .is_selected:
+							selectedList.append (item [:])	# Item isn't always a list, can also be a single field!
+							break	# Add only once, if any view of a row is selected
+				for item in selectedList:
+					print item
+				print
+				self.selectedListNode.change (selectedList)
+				
+		def bareWriteSelectedList ():
+			for itemIndex, item in enumerate (self.listNode.new):
+				if item in self.selectedListNode.new:
+					self.listAdapter.get_view (itemIndex) .select_from_child (None)
+				else:
+					self.listAdapter.get_view (itemIndex) .deselect_from_child (None)
+			
+		self.selectedListLink = Link (self.listNode, bareReadSelectedList, bareWriteSelectedList)
+		self.selectedListLink.writeBack = False
+		
+		def bareReadSortColumnNumber (params):
+			self.sortColumnNumberNode.change (
+				(
+					-self.sortColumnNumberNode.new
+				) if params [0] == abs (self.sortColumnNumberNode.new) - 1 else (
+					params [0] + 1
+				)
+			)
+			listToSort = self.listNode.new	# We're still before the change event, so don't use self.listNode.old	
+			self.listNode.follow (sortList (listToSort, self.sortColumnNumberNode.new), self.transformer)
+		
+		self.sortColumnNumberLink = Link (self.sortColumnNumberNode, bareReadSortColumnNumber, None)
+		
+		self.widget = BoxLayout (orientation = 'vertical')
+		self.headerWidget = BoxLayout (height = 25, size_hint_y = None)
+		for index, head in enumerate (self.headerNode.new):
+			listHeadWidget = ListHeadWidget (text = str (head), height = 25, size_hint_y = None, listView = self, fieldIndex = index)
+			if index == len (self.headerNode.new) - 1:
+				self.headerWidget.add_widget (listHeadWidget)
+			else:
+				splitter = Splitter (sizable_from = 'right', strip_size = self.headerStripWidth, height = 25, size_hint_y = None)
+				splitter.add_widget (listHeadWidget)
+				self.headerWidget.add_widget (splitter)
+				
+		self.widget.add_widget (self.headerWidget)
+		self.widget.add_widget (KivyListView (adapter = self.listAdapter))
+		
+	def adaptItemSizes (self, fieldIndex):
+		for listItemWidget in self.columns [fieldIndex]:
+			listItemWidget.onSize ()
 
+	def interestingItemList (self):							# Order n rather than n**2  !!! Tidyup!!!
+		if application.initializing:
+			return []
+	
+#		if self.edited:
+#			self.edited = False
+#			return [self.listNode.new [self.editRowIndex]]
+			
+		indexNew = len (self.listNode.new) - 1
+		growth = indexNew - (len (self.listNode.old) - 1)
+		
+		if growth == 0:														# If same size
+			if sorted (self.listNode.new) == sorted (self.listNode.old):		# If contain same elements
+				return self.selectedListNode.old
+			else:															# Both insertion and removal have taken place, no sensible selection possible
+				return []
+		else:
+		
+			# Look for a difference between the lists, that have unequal length
+
+			try:
+				while self.listNode.new [indexNew] == self.listNode.old [indexNew - growth]:
+					indexNew -= 1				
+			except IndexError:
+				pass	
+
+			# When here, a difference has been found, including exhaustion of exactly one of both lists
+		
+			if indexNew == -1:									# If index points at fictional sentry at index -1
+				return []										#	Don't return sentry, since it is fictional...
+			else:												# If index points at a real item
+				return [self.listNode.new [indexNew]]			#	Inserted item or item just above the ones deleted
+			
 class SpanLayout (RelativeLayout):
 	def __init__ (self):
 		RelativeLayout.__init__ (self)
@@ -889,6 +1075,7 @@ class MainView (App, ViewBase):
 		return self.createWidget ()
 		
 	def execute (self):
+		application.initializing = False
 		self.run ()
 
 	

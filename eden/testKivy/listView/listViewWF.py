@@ -10,28 +10,21 @@
 
 # listView.py
 
-import random as rd
-
 from eden import *
-
-rd.seed ()
 
 positions = ('left', 'in the middle', 'right')
 
 headerNode = Node (['Something ' + position for position in positions])
 
-nrOfItems = 3
-
 listNode = Node ([
-	['{0} {1} {0}'.format (position, rd.randint (1000, 1000 + nrOfItems)) for position in positions]
-	for index in range (nrOfItems)
+	['{0} {1} {0}'.format (position, index) for position in positions]
+	for index in range (10)
 ])
 
 selectedListNode = Node ([])
 
 mainView = MainView (VGridView ([
-	ListView (headerNode = headerNode, listNode = listNode, selectedListNode = selectedListNode), 2,
-	ListView (headerNode = headerNode, listNode = selectedListNode)
+	ListView (listNode, ['a', 'b', 'c'], selectedListNode = selectedListNode)
 ]), 'ListView')
 
 mainView.execute ()

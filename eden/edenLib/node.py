@@ -206,7 +206,7 @@ class Node (object):							# Node representing atomary partial state in a state 
 			handleNotification (refusal)
 			transactor.rollBack ()
 			
-		except Exception as exception:	# This is a barebones Python exception, must be converted to Eden exception
+		except Exception as exception:	# This is a barebones Python exception, so convert it to Eden exception
 			handleNotification (Objection (exMessage (exception), report = exReport (exception)))
 			transactor.rollBack ()
 			
