@@ -694,6 +694,7 @@ class TreeView (ViewBase):	# Views a <tree>
 
 class ListHeadWidget (Label):
 	def __init__ (self, **args):
+		self.background = (0.1, 0.1, 0.1, 1)
 		Label.__init__ (self, **args)
 		self.listView = args ['listView']
 		self.fieldIndex = args ['fieldIndex']
@@ -719,10 +720,12 @@ class ListHeadWidget (Label):
 						
 class ListItemWidget (ListItemButton):
 	def __init__ (self, **args):
-		ListItemButton.__init__ (self, **args)
 		self.listView = args ['listView']
 		self.fieldIndex = args ['fieldIndex']
 		self.rowIndex = args ['rowIndex']
+		self.deselected_color = (0.3, 0.3, 0.3, 1) if self.rowIndex % 2 else (0.4, 0.4, 0.4, 1)
+		self.selected_color = (0.9, 0.9, 0.9, 1)
+		ListItemButton.__init__ (self, **args)
 		self.max_lines = 1
 		self.halign = 'center'
 		self.size_hint_x = None
@@ -731,18 +734,19 @@ class ListItemWidget (ListItemButton):
 		
 		def onSelect (*args):
 			if self.is_selected:
-				print 'select', self.rowIndex, self.fieldIndex
 				self.listView.listAdapter.get_view (self.rowIndex) .select_from_child (self)
 			else:
-				print 'deselect', self.rowIndex, self.fieldIndex
 				self.listView.listAdapter.get_view (self.rowIndex) .deselect_from_child (self)
 			self.listView.selectedListLink.read (self.rowIndex)
 		
 		self.bind (is_selected = onSelect)
-
+		
 	def onSize (self, *args):	# Member, since it is also called by ListView.adaptItemSizes, initiated by a head resize
 		self.width = self.listView.listHeadWidgets [self.fieldIndex] .getGrossWidth ()
 		self.text_size = (self.width, None)
+
+	def isSelected (self):	# ... Ugly hack, since is_selected doesn't do the job in Kivy 1.8
+		return self.background_color == self.selected_color
 
 class ListView (ViewBase):
 	Neutral, Next, Previous, Up, Down, Insert, Delete, Undo = range (8)
@@ -858,20 +862,13 @@ class ListView (ViewBase):
 			self.selectedListNode.dependsOn ([self.listNode], self.interestingItemList)
 			
 		def bareReadSelectedList (params):
-			print 'bareReadSelectedList'
 			if not self.listLink.writing:
-				for item in self.listNode.new:
-					print item
-				print
 				selectedList = []
 				for itemIndex, item in enumerate (self.listNode.new):
 					for fieldWidget in self.listAdapter.get_view (itemIndex) .children:
-						if fieldWidget.is_selected:
+						if fieldWidget.isSelected ():
 							selectedList.append (item [:])	# Item isn't always a list, can also be a single field!
 							break	# Add only once, if any view of a row is selected
-				for item in selectedList:
-					print item
-				print
 				self.selectedListNode.change (selectedList)
 				
 		def bareWriteSelectedList ():
