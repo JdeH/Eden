@@ -32,6 +32,7 @@ from kivy.uix.treeview import TreeView as KivyTreeView, TreeViewNode, TreeViewLa
 from kivy.uix.listview import ListView as KivyListView, ListItemLabel, ListItemButton, CompositeListItem
 from kivy.adapters.dictadapter import ListAdapter
 from kivy.clock import Clock
+from kivy.graphics import Color, Rectangle
 
 from eden.edenLib.node import *
 from eden.edenLib.store import *
@@ -175,7 +176,10 @@ class ViewBase:
 			application.pointerWentDownPosition = application.pointerPosition
 			self.pointerDown ()
 			
-		self.widget.bind (on_touch_down = touchDown)
+			if hasattr (self.widget, 'focus') and self.widget.focus and not self.pointerIsInside:
+				self.widget.focus = False
+			
+		application.mainView.widget.bind (on_touch_down = touchDown)
 		
 		def touchUp (*args):
 			application.oldPointerIsDown = application.pointerIsDown
@@ -184,7 +188,7 @@ class ViewBase:
 			application.dragObject.armedForDrag = True
 			self.pointerUp ()
 			
-		self.widget.bind (on_touch_up = touchUp)
+		application.mainView.widget.bind (on_touch_up = touchUp)
 					
 		def mousePos (*args):	
 			if not application.pointerIsDown:	# If the pointer is down, touchMove will take over
@@ -203,23 +207,23 @@ class ViewBase:
 				#if self.pointerIsInside:
 				#	application.setPointerLabel (self.hintGetter ())
 				
-		self.widget.bind (on_touch_move = touchMove)
-				
-		def focus (*args):
-			if self.widget.focus:
-				application.focusedView = self
-				self.hadFocus = self.hasFocus
-				self.hasFocus = True
-				self.focusIn ()
-			else:
-				if application.focusedView == self:	# Be safe, may already point to new focus
-					application.focusedView = None
-					
-				self.hadFocus = self.hasFocus
-				self.hasFocus = False
-				self.focusOut ()
-		
+		application.mainView.widget.bind (on_touch_move = touchMove)
+								
 		if hasattr (self.widget, 'focus'):
+			def focus (*args):
+				if self.widget.focus:
+					application.focusedView = self
+					self.hadFocus = self.hasFocus
+					self.hasFocus = True
+					self.focusIn ()
+				else:
+					if application.focusedView == self:	# Be safe, may already point to new focus
+						application.focusedView = None
+						
+					self.hadFocus = self.hasFocus
+					self.hasFocus = False
+					self.focusOut ()
+					
 			self.widget.bind (focus = focus)
 			
 		return self.widget
@@ -693,9 +697,11 @@ class TreeView (ViewBase):	# Views a <tree>
 # <item> = <field> | [<field>, ...]
 
 class ListHeadWidget (Label):
-	def __init__ (self, **args):
-		self.background = (0.1, 0.1, 0.1, 1)
+	def __init__ (self, **args):		
 		Label.__init__ (self, **args)
+		with self.canvas.before:
+			Color (0, 0, 0.2, 1)
+			self.rectangle = Rectangle (pos = self.pos, size = self.size)
 		self.listView = args ['listView']
 		self.fieldIndex = args ['fieldIndex']
 		self.max_lines = 1
@@ -706,6 +712,8 @@ class ListHeadWidget (Label):
 		def onSize (*args):
 			self.listView.adaptItemSizes (self.fieldIndex)
 			self.text_size = (self.width, None)
+			self.rectangle.pos = self.pos
+			self.rectangle.size = self.size
 						
 		self.bind (size = onSize)
 		
@@ -759,7 +767,6 @@ class ListView (ViewBase):
 		listNode = None,
 		pointedListNode = None,
 		selectedListNode = None,
-		checkedListNode = None,
 		enabledNode = None,
 		contextMenuView = None,
 		transformer = None,
@@ -787,7 +794,6 @@ class ListView (ViewBase):
 		self.listNode = getNode (listNode, Node ([]))
 		self.pointedListNode = getNode (pointedListNode, Node ([]))
 		self.selectedListNode = getNode (selectedListNode, Node ([]))
-		self.checkedListNode = getNode (checkedListNode, Node ([]))
 		self.contextMenuView = contextMenuView
 		self.transformer = transformer
 		self.hintGetter = hintGetter = getFunction (hintGetter, lambda: None)
@@ -837,7 +843,7 @@ class ListView (ViewBase):
 		self.widget = BoxLayout (orientation = 'vertical')
 		self.headerWidget = BoxLayout (height = 25, size_hint_y = None)
 		for index, head in enumerate (self.headerNode.new):
-			listHeadWidget = ListHeadWidget (text = str (head), height = 25, size_hint_y = None, listView = self, fieldIndex = index)
+			listHeadWidget = ListHeadWidget (text = '', height = 25, size_hint_y = None, listView = self, fieldIndex = index)
 			if index == len (self.headerNode.new) - 1:
 				self.headerWidget.add_widget (listHeadWidget)
 			else:
@@ -847,13 +853,20 @@ class ListView (ViewBase):
 				
 		self.widget.add_widget (self.headerWidget)
 		self.widget.add_widget (KivyListView (adapter = self.listAdapter))
+		
+		def bareWriteHeader ():
+			for index, listHeadWidget in enumerate (self.listHeadWidgets):
+				listHeadWidget.text = self.headerNode.new [index]
+		
+		self.headerLink = Link (self.headerNode, None, bareWriteHeader)
+		self.headerLink.write ()
 				
 		def bareReadList (params):
 			listToSort = self.listNode.new	# We're still before the change event, so don't use self.listNode.old	
 			self.listNode.change (sortList (listToSort, self.sortColumnNumberNode.new), self.transformer)
 		
 		def bareWriteList ():
-			self.listAdapter.data = self.listNode.new
+			self.listAdapter.data = self.listNode.new if self.listNode.new and self.listNode.new [0] .__class__ == list else [[item] for item in self.listNode.new]
 			
 		self.listLink = Link (self.listNode, bareReadList, bareWriteList)
 		self.listLink.write ()
@@ -867,7 +880,7 @@ class ListView (ViewBase):
 				for itemIndex, item in enumerate (self.listNode.new):
 					for fieldWidget in self.listAdapter.get_view (itemIndex) .children:
 						if fieldWidget.isSelected ():
-							selectedList.append (item [:])	# Item isn't always a list, can also be a single field!
+							selectedList.append (item [:] if item.__class__ == list else item)	# Item isn't always a list, can also be a single field!
 							break	# Add only once, if any view of a row is selected
 				self.selectedListNode.change (selectedList)
 				

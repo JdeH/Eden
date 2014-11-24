@@ -20,7 +20,7 @@ positions = ('left', 'in the middle', 'right')
 
 headerNode = Node (['Something ' + position for position in positions])
 
-nrOfItems = 3
+nrOfItems = 50
 
 listNode = Node ([
 	['{0} {1} {0}'.format (position, rd.randint (1000, 1000 + nrOfItems)) for position in positions]
@@ -30,7 +30,9 @@ listNode = Node ([
 selectedListNode = Node ([])
 
 mainView = MainView (VGridView ([
+	TextView (headerNode),
 	ListView (headerNode = headerNode, listNode = listNode, selectedListNode = selectedListNode), 2,
+	TextView (headerNode),
 	ListView (headerNode = headerNode, listNode = selectedListNode)
 ]), 'ListView')
 
