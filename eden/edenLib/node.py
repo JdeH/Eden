@@ -152,6 +152,7 @@ class Node (object):							# Node representing atomary partial state in a state 
 	def propagate (self):						# Forward propagation
 		self.validate ()							#	Correct mistakes early, get report on changed node, rather than dependent one
 		
+		self.printTrace ('Writing to {0} links'.format (len (self.links)), 'event')
 		for link in self.links:						#	For each GUI element associated with this node
 			link.write ()							#		Update that GUI element
 		
