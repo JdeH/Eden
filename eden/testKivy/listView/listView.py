@@ -14,7 +14,7 @@ import random as rd
 from eden import *
 
 positions = ('left', 'in the middle', 'right')
-nrOfItems = 200
+nrOfItems = 100
 
 headerNode = Node (['Something ' + position for position in positions])
 
@@ -35,24 +35,24 @@ pointedList2Node = Node ([])
 selectedList2Node = Node ([])
 
 mainView = MainView (GridView ([
+	[TextView (headerNode), 41], 3,
 	[
-		TextView (headerNode), 21
-	],
+		ListView (headerNode = headerNode, listNode = listNode, pointedListNode = pointedListNode, selectedListNode = selectedListNode), 20,
+		LabelView (),
+		ListView (headerNode = headerNode, listNode = list2Node, pointedListNode = pointedList2Node, selectedListNode = selectedList2Node), 20,
+	], 15,
+	[LabelView (), 41],
 	[
-		ListView (headerNode = headerNode, listNode = listNode, pointedListNode = pointedListNode, selectedListNode = selectedListNode), 10,
-		LabelView (''),
-		ListView (headerNode = headerNode, listNode = list2Node, pointedListNode = pointedList2Node, selectedListNode = selectedList2Node), 10,
-	], 3,
+	 ListView (headerNode = headerNode, listNode = pointedListNode), 20,
+	 LabelView (),
+	 ListView (headerNode = headerNode, listNode = pointedList2Node), 20,
+	], 10,
+	[LabelView (), 41],
 	[
-	 ListView (headerNode = headerNode, listNode = pointedListNode), 10,
-	 LabelView (''),
-	 ListView (headerNode = headerNode, listNode = pointedList2Node), 10,
-	], 2,
-	[
-	 ListView (headerNode = headerNode, listNode = selectedListNode), 10,
-	 LabelView (''),
-	 ListView (headerNode = headerNode, listNode = selectedList2Node), 10,
-	], 2,
+	 ListView (headerNode = headerNode, listNode = selectedListNode), 20,
+	 LabelView (),
+	 ListView (headerNode = headerNode, listNode = selectedList2Node), 20,
+	], 10,
 ]), 'ListView')
 
 mainView.execute ()
