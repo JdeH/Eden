@@ -12,6 +12,7 @@
 
 from eden import *
 
-mainView = MainView (LabelView ('Hello'))
-
-mainView.execute ()
+MainView (
+	LabelView ('Hello, resize and restart me'),
+	fontScale = 5
+) .execute ()

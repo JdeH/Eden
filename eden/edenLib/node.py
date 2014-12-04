@@ -63,6 +63,7 @@ class Node (object):							# Node representing atomary partial state in a state 
 	
 	def trace (self, traceName):
 		self.traceName = traceName
+		return self
 	
 	def traceNameIs (traceName):
 		return hasattr (self, 'traceName') and self.traceName == traceName
@@ -87,9 +88,12 @@ class Node (object):							# Node representing atomary partial state in a state 
 			self.evaluate ()							# Dependent initialisation by backward evaluation
 		except:												 
 			pass										# Lacks some needed dependency, or getter is incomputable, wait for initialisation by forward propagation
-				
+			
+		return self
+		
 	def addException (self, condition, aClass, message):
 		self.exceptions.append ((condition, aClass, message))
+		return self
 				
 	def invalidate (self):							# Invalidation phase, to know where to propagate and prevent cycles
 		# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

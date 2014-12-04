@@ -10,6 +10,14 @@
 
 import datetime
 import logging
+import copy as cp
+
+from eden.edenLib.node import *
+from eden.edenLib.store import *
+
+mainViewStoreFileName = 'views.store'
+mainViewStore = Store ()
+currentViewStore = CallableValue (mainViewStore)	# All applicable views will add themselves to currentViewStore ()
 
 from kivy.logger import Logger
 # Logger.setLevel(logging.ERROR)
@@ -17,6 +25,26 @@ from kivy.logger import Logger
 import kivy
 kivy.require('1.8.0') # replace with your current kivy version !
 
+class MainSizer:
+	def __init__ (self):
+		currentViewStore () .name (mainViewStoreFileName)
+		currentViewStore () .add (self)
+		
+	def load (self):
+		currentViewStore () .load ()
+		
+		if hasattr (self, 'state'):	# Maybe there wasn't a state file yet
+			global kivy
+			kivy.config.Config.set ( 'graphics', 'width', self.state [0]) 
+			kivy.config.Config.set ( 'graphics', 'height', self.state [1])
+		
+	def save (self):
+		self.state = application.mainView.widget.size [:]
+		currentViewStore () .save ()
+		
+mainSizer = MainSizer ()
+mainSizer.load ()	# First call, only load mainSizer state, rest loaded with second call
+		
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
@@ -34,9 +62,6 @@ from kivy.uix.scrollview import ScrollView
 from kivy.adapters.dictadapter import ListAdapter
 from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle
-
-from eden.edenLib.node import *
-from eden.edenLib.store import *
 
 application.designMode = False
 application.initializing = True
@@ -142,8 +167,8 @@ class DragObject:
 				application.setPointerLabel (dropLabel)
 			
 class ViewBase: 
-	def __init__ (self, enabledNode = None):
-	
+	def __init__ (self, enabledNode = None, key = None):
+
 		self.enabledNode = getNode (enabledNode)
 		self.pointerIsInside = False
 		self.pointerWasInside = self.pointerIsInside
@@ -151,6 +176,7 @@ class ViewBase:
 		self.containedFocus = self.containsFocus
 		self.hasFocus = False
 		self.hadFocus = self.hasFocus
+		self.key = key
 			
 	# Widget creation, enabling and event binding
 	
@@ -158,6 +184,7 @@ class ViewBase:
 		self.bareCreateWidget ()
 		
 		application.mainView.widget.bind (size = lambda *args: self.resizeFont ())
+		application.mainView.widget.bind (on_change_font_scale = lambda *args: self.resizeFont ())
 		
 		def bareWriteEnabled ():
 			self.widget.disabled = not self.enabledNode.new
@@ -402,11 +429,13 @@ class TextView (ViewBase):
 		self.valueNode = getNode (valueNode)
 		
 	def bareCreateWidget (self):
-		self.widget = TextInput ()
+		self.widget = TextInput (multiline = False)
 		
 		if self.valueNode:
 			self.valueLink = Link (self.valueNode, lambda params: self.valueNode.change (str (self.widget.text)), lambda: self.setText (self.valueNode.new))
 			self.valueLink.write ()
+			
+		self.widget.bind (on_text_validate = self.valueLink.read)
 			
 	def focusOut (self):
 		self.valueLink.read ()
@@ -872,7 +901,7 @@ class ListView (ViewBase):
 		self.transformer = transformer
 		self.hintGetter = hintGetter = getFunction (hintGetter, lambda: None)
 		self.multiSelectNode = getNode (multiSelectNode, Node (False))
-		self.sortColumnNumberNode = getNode (sortColumnNumberNode, Node (1))
+		self.sortColumnNumberNode = getNode (sortColumnNumberNode, Node (0))
 		self.pointedColumnIndexNode = getNode (pointedColumnIndexNode, Node (0))
 		self.clickedColumnIndexNode = getNode (clickedColumnIndexNode, Node (0))
 		self.visibleColumnsNode = getNode (visibleColumnsNode, Node (0)),
@@ -927,11 +956,21 @@ class ListView (ViewBase):
 		
 		def bareWriteHeader ():
 			for index, listHeadWidget in enumerate (self.listHeadWidgets):
-				listHeadWidget.text = self.headerNode.new [index]
+				prefix = ''
+				if self.sortColumnNumberNode.touched:
+					if self.sortColumnNumberNode.new == index + 1:
+						prefix = '+ '
+					elif self.sortColumnNumberNode.new == -index - 1:
+						prefix = '- '
+			
+				listHeadWidget.text = prefix + self.headerNode.new [index]
 		
 		self.headerLink = Link (self.headerNode, None, bareWriteHeader)
 		self.headerLink.write ()
-				
+		
+		self.headerSortLink = Link (self.sortColumnNumberNode, None, bareWriteHeader)
+		self.headerUnsortLink = Link (self.listNode, None, bareWriteHeader)
+		
 		def bareReadList (params):
 			listToSort = self.listNode.new	# We're still before the change event, so don't use self.listNode.old	
 			self.listNode.change (sortList (listToSort, self.sortColumnNumberNode.new), self.transformer)
@@ -1017,7 +1056,7 @@ class ListView (ViewBase):
 		ViewBase.pointerUp (self)
 		
 	def pointerStartDrag (self):
-		if self.pointerIsInside and self.selectedListNode.new:
+		if self.kivyListView.collide_point (*application.pointerPosition) and self.selectedListNode.new:
 			application.dragObject.startDrag (dragView = self)
 		
 	def pointerLeave (self):
@@ -1202,13 +1241,18 @@ class MainView (App, ViewBase):
 		self,
 		clientView = None,
 		captionNode = 'Eden',
-		fontScaleNode = 1,
+		fontScale = 1,
+		viewStoreFileName = 'views.store'
 	):
+
+	
 		App.__init__ (self)
 		ViewBase.__init__ (self)
 		self.clientView = clientView
 		self.captionNode = getNode (captionNode)
-		self.fontScaleNode = getNode (fontScaleNode)
+		self.fontScale = fontScale
+		self.viewStoreFileName = viewStoreFileName
+		
 		application.mainView = self
 		self.pointerLabelVisible = False
 		self.transientWidgetDict = {}
@@ -1233,7 +1277,7 @@ class MainView (App, ViewBase):
 		
 	def bareCreateWidget (self):
 		self.widget = FloatLayout ()
-		
+				
 		self.widget.add_widget (self.clientView.createWidget ())
 		
 		self.pointerLabelSurface = FloatLayout (size_hint = (None, None))
@@ -1252,13 +1296,11 @@ class MainView (App, ViewBase):
 		)
 		self.captionLink.write ()
 		
-		# self.fontScaleLink = Link (self.fontScaleNode, None, traverseResizeFont)
-		
 	def resizeFont (self):
 		ViewBase.resizeFont (self, self.pointerLabel)
 
 	def resizeFontOfTarget (self, widget):
-		newFontSize = self.fontScaleNode.new * self.widget.width / 70
+		newFontSize = self.fontScale * self.widget.width / 70
 		if hasattr (widget, 'font_size') and not widget.font_size == newFontSize:
 			widget.font_size = newFontSize
 			
@@ -1266,5 +1308,7 @@ class MainView (App, ViewBase):
 		return self.createWidget ()
 		
 	def execute (self):
+		mainSizer.load ()	# Second call, see earlier
 		application.initializing = False
 		self.run ()
+		mainSizer.save ()	# Save everything

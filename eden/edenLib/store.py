@@ -19,6 +19,7 @@ class Store:
 		self.keyList = []
 		self.autoKey = UniqueNumber ()
 		self.afterLoadActionNode = Node (None)
+		self.fileName = 'nodes.store'
 		
 	def name (self, fileName):
 		self.fileName = fileName

@@ -12,9 +12,9 @@
 
 from eden import *
 
-store = Store ()
+nodeStore = Store ()
 
-topTreeNode = store.add (Node ([
+topTreeNode = nodeStore.add (Node ([
 	('City', [
 		('Buildings', [
 			('Houses', ['Flats', 'Bungalows', 'Campers']),
@@ -34,7 +34,7 @@ topTreeNode = store.add (Node ([
 	])
 ]), 'topTree')
 
-bottomTreeNode = store.add (Node ([
+bottomTreeNode = nodeStore.add (Node ([
 	('Subjects', [
 		('Big subjects', [
 			('Noisy', ['Jet', 'Steel mill', 'Freight train']),
@@ -55,11 +55,20 @@ bottomTreeNode = store.add (Node ([
 ]), 'bottomTree')
 
 mainView = MainView (VGridView ([
-	LabelView ('Wait a second close to the starting point of a drag to copy rather than move.'),
-	LabelView ('Wait a second close to the end point of a drag to insert a child rather than a sibling.'),
-	LabelView ('You may also reorder trees.'),
-	TreeView (rootNode = 'Top Tree', treeNode = topTreeNode), 12,
-	TreeView (rootNode = 'Bottom Tree', treeNode = bottomTreeNode), 12
+	LabelView (
+'''
+Expand some tree branches and start dragging any of them sideways.
+Wait a second close to the starting point of a drag to copy rather than move.
+Wait a second close to the end point of a drag to insert a child rather than a sibling.
+You may also reorder trees by dragging and dropping.
+Note that the tree contents are persistent between invocations of the program.
+If you want to have the original trees back, just delete the 'nodes.store' file.'''
+	),
+	TreeView (rootNode = 'Top Tree', treeNode = topTreeNode), 4,
+	TreeView (rootNode = 'Bottom Tree', treeNode = bottomTreeNode), 4
 ]), 'Drag & Drop between TreeViews')
 
+nodeStore.load ()
 mainView.execute ()
+nodeStore.save ()
+

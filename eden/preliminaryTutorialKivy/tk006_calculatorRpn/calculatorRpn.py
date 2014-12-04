@@ -18,6 +18,10 @@ Digits = list ('0123456789')
 Operators = list ('+-*/')
 Open, Terminated, Entered = range (3)
 
+# --- Persistence
+
+nodeStore = Store ()
+
 # --- Local nodes
 
 doDigitNodes = [Node (None) .tagged (digit) for digit in Digits]
@@ -30,8 +34,8 @@ doClearNode = Node (None) .tagged ('C')
 doKeyNodes = doDigitNodes + doOperatorNodes + [doDotNode, doChangeSignNode, doEnterNode, doClearNode]
 
 inputNode = Node ('')
-stackNode = Node (['', '0', '0', '0'])
-stateNode = Node (Open)
+stackNode = nodeStore.add (Node (['0', '0', '0', '0']))
+stateNode = Node (Terminated)
 displayNode = Node ()
 
 # --- Dependencies
@@ -70,13 +74,17 @@ def key (tag):
 			
 mainView = MainView (
 	GridView ([
-		[TextView (displayNode), 4], 16,
+		[LabelView ('Press e.g.:   7 enter 8 *'), 4],
+		[TextView (displayNode), 4],
 		[key ('enter'), 2, key ('+/-'), 2], 2,
 		[key (tag) for tag in '789/'],
 		[key (tag) for tag in '456*'],
 		[key (tag) for tag in '123-'],
 		[key (tag) for tag in '0.C+']
-	]), 'RPN Calculator'
+	]), captionNode = 'RPN Calculator', fontScale = 5
 )
 
+nodeStore.load ()
 mainView.execute ()
+nodeStore.save ()
+
