@@ -28,7 +28,7 @@ class Store:
 		for item in storeList:
 			try:
 				self.storeDictionary [item [0]] .state = item [1]
-			except Exception, exception:
+			except Exception as exception:
 				problem = (
 					'Can not restore item ' + str (item [0]) +
 					' with value ' + str (item [1]) +

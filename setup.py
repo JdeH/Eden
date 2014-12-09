@@ -8,7 +8,7 @@ def read (*paths):
 
 setup (
 	name = 'Eden',
-	version = '2.1.5 (Kivy TreeView Drag&Drop added, testprogs repaired)',
+	version = '2.1.7 Multipanel persistent splitters added + tutorial',
 	description = 'Eden - Event Driven Evaluation Nodes',
 	long_description = (
 		read ('README.md') + '\n\n' +
@@ -21,7 +21,7 @@ setup (
 	author_email = 'jacques.de.hooge@qquick.org',
 	packages = ['eden'],	
 	include_package_data = True,
-	install_requires = ['Kivy', 'Cython'],
+	install_requires = ['Kivy == 1.8'],
 	classifiers = [
 		'Development Status :: 4 - Beta',
 		'Intended Audience :: Developers',

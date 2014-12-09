@@ -23,7 +23,9 @@ from kivy.logger import Logger
 # Logger.setLevel(logging.ERROR)
 
 import kivy
-kivy.require('1.8.0') # replace with your current kivy version !
+kivy.require('1.8.0')
+
+splitterGripSize = 2 * 4	# Always choose even, since it will be halved to achieve right item width when used in list header
 
 class MainSizer:
 	def __init__ (self):
@@ -157,7 +159,6 @@ class DragObject:
 			dragLabel = self.dragView.dragLabelGetter ()
 			if not dragLabel is None:
 				application.setPointerLabel (dragLabel)
-
 			
 	def fixDrop (self, *args):	# Clock requires args	
 			self.dropFixed = True
@@ -166,7 +167,7 @@ class DragObject:
 			if not dropLabel is None:
 				application.setPointerLabel (dropLabel)
 			
-class ViewBase: 
+class ViewBase (object): 
 	def __init__ (self, enabledNode = None, key = None):
 
 		self.enabledNode = getNode (enabledNode)
@@ -424,12 +425,13 @@ class ButtonView (ViewBase):
 			self.captionLink.write ()		 
 		
 class TextView (ViewBase):
-	def __init__ (self, valueNode = None, enabledNode = None):
+	def __init__ (self, valueNode = None, enabledNode = None, multiLine = False):
 		ViewBase.__init__ (self, enabledNode)	
 		self.valueNode = getNode (valueNode)
+		self.multiLine = multiLine
 		
 	def bareCreateWidget (self):
-		self.widget = TextInput (multiline = False)
+		self.widget = TextInput (multiline = self.multiLine)
 		
 		if self.valueNode:
 			self.valueLink = Link (self.valueNode, lambda params: self.valueNode.change (str (self.widget.text)), lambda: self.setText (self.valueNode.new))
@@ -772,7 +774,7 @@ class ListHeadWidget (ColoredLabel):
 		self.fieldIndex = args ['fieldIndex']
 		self.max_lines = 1
 		self.halign = 'center'
-		self.extraWidth = self.listView.headerStripWidth / 2 if self.fieldIndex in (0, len (self.listView.headerNode.new) - 1) else self.listView.headerStripWidth
+		self.extraWidth = splitterGripSize / 2 if self.fieldIndex in (0, len (self.listView.headerNode.new) - 1) else splitterGripSize
 		self.listView.listHeadWidgets [self.fieldIndex] = self
 				
 		def onSize (*args):
@@ -797,6 +799,7 @@ class ListHeadWidget (ColoredLabel):
 		return self.width + self.extraWidth	
 			
 class ListItemWidget (ListItemButton):	
+
 	def __init__ (self, **args):
 		self.listView = args ['listView']
 		self.fieldIndex = args ['fieldIndex']
@@ -830,7 +833,7 @@ class ListItemWidget (ListItemButton):
 				self.listView.scheduleReadPointedList (self.rowIndex)
 				
 		application.mainView.widget.bind (on_touch_move = touchMove)
-						
+		
 	def onSize (self, *args):	# Member, since it is also called by ListView.adaptItemSizes, initiated by a head resize
 		self.width = self.listView.listHeadWidgets [self.fieldIndex] .getGrossWidth ()
 		self.text_size = (self.width, None)
@@ -917,7 +920,6 @@ class ListView (ViewBase):
 		self.key = key
 		self.tweaker = None
 		
-		self.headerStripWidth = 2 * 4	# Always choose even, since it will be halved to achieve right item width
 		self.listHeadWidgets = [None for header in self.headerNode.new]
 		
 	def bareCreateWidget (self):
@@ -929,7 +931,7 @@ class ListView (ViewBase):
 				'cls_dicts': [{
 					'cls': ListItemWidget,
 					'kwargs': {
-						'text': item [index],
+						'text': str (item [index]),
 						'listView': self,
 						'fieldIndex': index,
 						'rowIndex': rowIndex,
@@ -946,7 +948,7 @@ class ListView (ViewBase):
 			if index == len (self.headerNode.new) - 1:
 				self.headerWidget.add_widget (listHeadWidget)
 			else:
-				splitter = Splitter (sizable_from = 'right', strip_size = self.headerStripWidth, height = 25, size_hint_y = None)
+				splitter = Splitter (sizable_from = 'right', strip_size = splitterGripSize, height = 25, size_hint_y = None)
 				splitter.add_widget (listHeadWidget)
 				self.headerWidget.add_widget (splitter)
 				
@@ -1235,6 +1237,50 @@ class VGridView (GridView):
 				weightedRows.append (viewOrWeight)
 		GridView.__init__ (self, weightedRows)
 
+class SplitViewBase (ViewBase):
+	def __init__ (self, childViews, sizableFrom, orientation):
+		ViewBase.__init__ (self)
+		self.childViews = childViews
+		self.sizableFrom = sizableFrom
+		self.orientation = orientation
+
+	def bareCreateWidget (self):
+		self.widget = BoxLayout (orientation = self.orientation)
+		for index, childView in enumerate (self.childViews):
+			if index == len (self.childViews) - 1:
+				self.widget.add_widget (childView.createWidget ())
+			else:
+				splitter = Splitter (sizable_from = self.sizableFrom, strip_size = splitterGripSize, min_size = 10, max_size = 10000)
+				splitter.add_widget (childView.createWidget ())				
+				self.widget.add_widget (splitter)				
+				
+		currentViewStore () .add (self)
+		
+class HSplitView (SplitViewBase):
+	def __init__ (self, childViews):
+		SplitViewBase.__init__ (self, childViews, 'right', 'horizontal')
+	
+	def getState (self):
+		return [childView.widget.parent.width / float (self.childViews [-1] .widget.width) for childView in self.childViews [:-1]]
+		
+	def setState (self, value):
+		for index, childView in enumerate (self.childViews [:-1]):
+			childView.widget.parent.size_hint_x = value [index]
+
+	state = property (getState, setState)
+		
+class VSplitView (SplitViewBase):
+	def __init__ (self, childViews):
+		SplitViewBase.__init__ (self, childViews, 'bottom', 'vertical')
+		
+	def getState (self):
+		return [childView.widget.parent.height / float (self.childViews [-1] .widget.height) for childView in self.childViews [:-1]]
+		
+	def setState (self, value):
+		for index, childView in enumerate (self.childViews [:-1]):
+			childView.widget.parent.size_hint_y = value [index]
+
+	state = property (getState, setState)
 		
 class MainView (App, ViewBase):
 	def __init__ (
@@ -1307,8 +1353,10 @@ class MainView (App, ViewBase):
 	def build (self):
 		return self.createWidget ()
 		
+	def on_start (self):
+		mainSizer.load ()
+		
 	def execute (self):
-		mainSizer.load ()	# Second call, see earlier
 		application.initializing = False
 		self.run ()
-		mainSizer.save ()	# Save everything
+		mainSizer.save ()
