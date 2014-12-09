@@ -61,6 +61,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.treeview import TreeView as KivyTreeView, TreeViewNode, TreeViewLabel
 from kivy.uix.listview import ListView as KivyListView, ListItemLabel, ListItemButton, CompositeListItem
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelHeader
 from kivy.adapters.dictadapter import ListAdapter
 from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle
@@ -180,6 +181,12 @@ class ViewBase (object):
 		self.key = key
 			
 	# Widget creation, enabling and event binding
+	
+	def getWidget (self):
+		if hasattr (self, 'widget'):
+			return self.widget
+		else:
+			return self.createWidget ()
 	
 	def createWidget (self):
 		self.bareCreateWidget ()
@@ -1282,6 +1289,54 @@ class VSplitView (SplitViewBase):
 
 	state = property (getState, setState)
 		
+class TabbedView (ViewBase):
+	def __init__ (self, pageViews, tabsNode, indexNode = None):
+		ViewBase.__init__ (self)
+		self.pageViews = pageViews
+		self.tabsNode = getNode (tabsNode)
+		self.indexNode = Node (0) if indexNode == None else getNode (indexNode)
+		self.indexNode.addException (lambda value: value < 0 or value >= len (self.pageViews), Objection, 'Tab index out of range')
+		
+	def bareCreateWidget (self):
+		self.widget = TabbedPanel (do_default_tab = False)
+		self.widget.background_color = (0, 0, 0, 1)
+		
+		with self.widget.canvas.before:
+			Color (0.15, 0.15, 0.15, 1)
+			self.rectangle = Rectangle (pos = self.widget.pos, size = self.widget.size)
+				
+		def onSize (*args):
+			self.rectangle.size = self.widget.size
+						
+		self.widget.bind (size = onSize)
+
+		def onPos (*args):
+			self.rectangle.pos = self.widget.pos
+	
+		self.widget.bind (pos = onPos)
+		
+		def bareWriteTabs ():
+			self.widget.clear_tabs ()
+			
+			for tab, pageView in zip (self.tabsNode.new, self.pageViews):	# So if tab == '', page is hidden
+				if tab:
+					self.widget.add_widget (TabbedPanelHeader (text = tab, content = pageView.getWidget ()))				
+			
+		self.tabsLink = Link (self.tabsNode, None, bareWriteTabs)
+		self.tabsLink.write ()
+		
+		def bareReadIndex (params):
+			if not application.initializing:
+				self.indexNode.change (len (self.pageViews) - 1 - self.widget.tab_list.index (self.widget.current_tab))
+			
+		def bareWriteIndex ():
+			self.widget.switch_to (self.widget.tab_list [-self.indexNode.new - 1])
+		
+		self.indexLink = Link (self.indexNode, bareReadIndex, bareWriteIndex)
+		Clock.schedule_once (lambda *args: self.indexLink.write ())
+		# self.indexLink.writeBack = False
+		Clock.schedule_once (lambda *args: self.widget.bind (current_tab = lambda *args: self.indexLink.read ()))
+		
 class MainView (App, ViewBase):
 	def __init__ (
 		self,
@@ -1290,8 +1345,6 @@ class MainView (App, ViewBase):
 		fontScale = 1,
 		viewStoreFileName = 'views.store'
 	):
-
-	
 		App.__init__ (self)
 		ViewBase.__init__ (self)
 		self.clientView = clientView

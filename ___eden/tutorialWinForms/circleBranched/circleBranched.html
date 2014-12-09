@@ -1,0 +1,25 @@
+<h3> Tutorial example CircleBranched </h3>
+
+<p>
+Files
+<ul>
+<a href="circleBranched.py"> circleBranched.py </a>
+</ul>
+
+In CircleBranched the update graph is defined by
+
+<ul>
+<li> perimeterNode | areaNode -> radiusNode
+<li> radiusNode -> perimeterNode
+<li> radiusNode -> areaNode
+</ul>
+
+The update graph now has two cycles
+
+<ul>
+<li> perimeterNode->radiusNode->perimeterNode
+<li> areaNode->radiusNode->areaNode
+</ul>
+
+Since one of the cycles may not contain the Trigger Node, recursion is stopped explicitly by a test in getRadius.
+While this accounts for some extra code, the formulation of dependencies now looks more natural than with the single cycle update graph.

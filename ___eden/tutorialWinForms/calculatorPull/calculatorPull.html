@@ -1,0 +1,27 @@
+<h3> Tutorial example CalculatorPull </h3>
+
+<p>
+Files
+<ul>
+<a href="calculatorPull.py"> calculatorPull.py </a>
+</ul>
+
+In tutorial example CalculatorPull "Event Only" Nodes are introduced.
+An "Event Only" Node, or briefly Event Node, is a Node that always has value None.
+Its task in life is to propagate events rather than values.
+
+<ol>
+<li> First, the event associated with pressing the +, -, * or / button travels to resultNode.
+<li> In reaction, resultNode calls its getter function getResult, that will compute the new value of resultNode.
+</ol>
+
+Making Nodes communicate by connecting them through a call to Node.dependsOn, is called the Pull pattern.
+Use of the Pull pattern is not restricted to Event Nodes.
+Any Node can be in the list of event source Nodes that is passed to Node.dependsOn.
+And any Node can be used in implementing the getter function that is passed to Node.dependsOn.
+Underlying the Pull pattern is an elaborated version of the Observer pattern.
+By attaching an internal version number to events, and making available the previous Subject state in Node.old, 
+repeated and cyclic updates that often plague Observer applications, are completely avoided.
+
+<p>
+Remark: By convention, all names of Event Nodes start with the prefix "do".

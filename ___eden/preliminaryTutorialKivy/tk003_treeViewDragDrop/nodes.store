@@ -1,0 +1,216 @@
+(lp1
+(S'topTree'
+p2
+(lp3
+(S'City'
+p4
+(lp5
+(S'Buildings'
+p6
+(lp7
+(S'Houses'
+p8
+(lp9
+S'Flats'
+p10
+aS'Bungalows'
+p11
+aS'Campers'
+p12
+atp13
+a(S'Business estate'
+p14
+(lp15
+S'Shops'
+p16
+aS'Offices'
+p17
+aS'Factories'
+p18
+atp19
+a(S'Religious buildings'
+p20
+(lp21
+S'Churches'
+p22
+aS'Mosques'
+p23
+aS'Synagogues'
+p24
+atp25
+atp26
+a(S'Roads'
+p27
+(lp28
+(S'Roads for cars'
+p29
+(lp30
+S'Highways'
+p31
+aS'Main roads'
+p32
+aS'Streets'
+p33
+atp34
+a(S'Roads for bikes'
+p35
+(lp36
+S'Smooth bike roads'
+p37
+aS'Bumpy bike roads'
+p38
+aS'Muddy trails'
+p39
+atp40
+a(S'Roads for pedestrians'
+p41
+(lp42
+S'Sidewalks'
+p43
+aS'Promenades'
+p44
+aS'Stairs'
+p45
+atp46
+atp47
+a(S'Nature'
+p48
+(lp49
+(S'Public parks'
+p50
+(lp51
+S'Grass to play on'
+p52
+aS'Trees to climb in'
+p53
+aS'Robust flowers'
+p54
+atp55
+a(S'Private parks'
+p56
+(lp57
+S'Grass to look at'
+p58
+aS'Trees to sit under'
+p59
+aS'Delicate flowers'
+p60
+atp61
+a(S'Gardens'
+p62
+(lp63
+S'Grass for domestic animals'
+p64
+aS'Small trees'
+p65
+aS'Exotic flowers'
+p66
+atp67
+atp68
+atp69
+atp70
+a(S'bottomTree'
+p71
+(lp72
+(S'Subjects'
+p73
+(lp74
+(S'Big subjects'
+p75
+(lp76
+(S'Noisy'
+p77
+(lp78
+S'Jet'
+p79
+aS'Steel mill'
+p80
+aS'Freight train'
+p81
+atp82
+a(S'Audible'
+p83
+(lp84
+S'Elephant'
+p85
+aS'Truck'
+p86
+aS'Whale'
+p87
+atp88
+a(S'Silent'
+p89
+(lp90
+S'Mountain'
+p91
+aS'Tree'
+p92
+aS'Cloud'
+p93
+atp94
+atp95
+a(S'Not so big subjects'
+p96
+(lp97
+(g77
+(lp98
+S'Motor bike'
+p99
+aS'Chain saw'
+p100
+aS'PA system'
+p101
+atp102
+a(g83
+(lp103
+S'Human being'
+p104
+aS'Cat'
+p105
+aS'Dish washer'
+p106
+atp107
+a(g89
+(lp108
+S'Lamp post'
+p109
+aS'Brick'
+p110
+aS'Plant'
+p111
+atp112
+atp113
+a(S'Rather small subjects'
+p114
+(lp115
+(g77
+(lp116
+S'Cricket'
+p117
+aS'Wasp'
+p118
+aS'Whistle'
+p119
+atp120
+a(g83
+(lp121
+S'Mosquito'
+p122
+aS'Mouse'
+p123
+aS'Music box'
+p124
+atp125
+a(g89
+(lp126
+S'Strawberry'
+p127
+aS'Glas of water'
+p128
+aS'Piece of cake'
+p129
+atp130
+atp131
+atp132
+atp133
+a.

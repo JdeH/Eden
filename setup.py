@@ -8,7 +8,7 @@ def read (*paths):
 
 setup (
 	name = 'Eden',
-	version = '2.1.7 Multipanel persistent splitters added + tutorial',
+	version = '2.1.8 Tabbed view with persistent selection and hiding of pages.',
 	description = 'Eden - Event Driven Evaluation Nodes',
 	long_description = (
 		read ('README.md') + '\n\n' +
