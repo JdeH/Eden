@@ -10,15 +10,54 @@
 
 import datetime
 import logging
+import copy as cp
+
+from eden.edenLib.node import *
+from eden.edenLib.store import *
 
 from kivy.logger import Logger
-Logger.setLevel(logging.ERROR)
+
+def setDebugExtra (self, debug):
+	if debug:
+		Logger.setLevel (logging.TRACE)
+	else:
+		Logger.setLevel (logging.CRITICAL)
+		
+Application.setDebugExtra = setDebugExtra
+application.debug = True
+
+mainViewStoreFileName = 'views.store'
+mainViewStore = Store ()
+currentViewStore = CallableValue (mainViewStore)	# All applicable views will add themselves to currentViewStore ()
 
 import kivy
-kivy.require('1.8.0') # replace with your current kivy version !
+kivy.require('1.8.0')
 
+splitterGripSize = 2 * 4	# Always choose even, since it will be halved to achieve right item width when used in list header
+
+class MainSizer:
+	def __init__ (self):
+		currentViewStore () .name (mainViewStoreFileName)
+		currentViewStore () .add (self)
+		
+	def load (self):
+		currentViewStore () .load ()
+		
+		if hasattr (self, 'state'):	# Maybe there wasn't a state file yet
+			global kivy
+			kivy.config.Config.set ( 'graphics', 'width', self.state [0]) 
+			kivy.config.Config.set ( 'graphics', 'height', self.state [1])
+		
+	def save (self):
+		self.state = application.mainView.widget.size [:]
+		currentViewStore () .save ()
+		
+mainSizer = MainSizer ()
+mainSizer.load ()	# First call, only load mainSizer state, rest loaded with second call
+		
 from kivy.app import App
 from kivy.core.window import Window
+from kivy.uix.popup import Popup
 from kivy.uix.widget import Widget
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -31,12 +70,10 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.treeview import TreeView as KivyTreeView, TreeViewNode, TreeViewLabel
 from kivy.uix.listview import ListView as KivyListView, ListItemLabel, ListItemButton, CompositeListItem
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelHeader
 from kivy.adapters.dictadapter import ListAdapter
 from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle
-
-from eden.edenLib.node import *
-from eden.edenLib.store import *
 
 application.designMode = False
 application.initializing = True
@@ -50,15 +87,21 @@ application.pointerWasDown = application.pointerIsDown
 application.pointerWentDownPosition = (-1, -1)
 application.pointerWentUpPosition = (-1, -1)
 
-application.dragDistance = 6
+application.dragDistance = 15
 application.dragFixDistance = 60
 application.dragFixTime = 1
 application.dragResetTime = 6
 
 application.pointedListItemSettleTime = 0.3
 
+def xDistance (position0, position1):
+	return abs (position1 [0] - position0 [0])
+	
+def yDistance (position0, position1):
+	return abs (position1 [1] - position0 [1])
+
 def blockDistance (position0, position1):
-	return abs (position1 [0] - position0 [0]) + abs (position1 [1] - position0 [1])
+	return xDistance (position0, position1) + yDistance (position0, position1) 
 	
 class DragObject:
 	def __init__ (self):
@@ -126,7 +169,6 @@ class DragObject:
 			dragLabel = self.dragView.dragLabelGetter ()
 			if not dragLabel is None:
 				application.setPointerLabel (dragLabel)
-
 			
 	def fixDrop (self, *args):	# Clock requires args	
 			self.dropFixed = True
@@ -135,9 +177,9 @@ class DragObject:
 			if not dropLabel is None:
 				application.setPointerLabel (dropLabel)
 			
-class ViewBase: 
-	def __init__ (self, enabledNode = None):
-	
+class ViewBase (object): 
+	def __init__ (self, enabledNode = None, key = None):
+
 		self.enabledNode = getNode (enabledNode)
 		self.pointerIsInside = False
 		self.pointerWasInside = self.pointerIsInside
@@ -145,11 +187,21 @@ class ViewBase:
 		self.containedFocus = self.containsFocus
 		self.hasFocus = False
 		self.hadFocus = self.hasFocus
+		self.key = key
 			
 	# Widget creation, enabling and event binding
 	
+	def getWidget (self):
+		if hasattr (self, 'widget'):
+			return self.widget
+		else:
+			return self.createWidget ()
+	
 	def createWidget (self):
 		self.bareCreateWidget ()
+		
+		application.mainView.widget.bind (size = lambda *args: self.resizeFont ())
+		application.mainView.widget.bind (on_change_font_scale = lambda *args: self.resizeFont ())
 		
 		def bareWriteEnabled ():
 			self.widget.disabled = not self.enabledNode.new
@@ -190,6 +242,14 @@ class ViewBase:
 			application.pointerWentUpPosition = application.pointerPosition
 			application.dragObject.armedForDrag = True
 			self.pointerUp ()
+	
+			if self.pointerIsInside:
+				if hasattr (self, 'dropLink'):
+					if application.dragObject.dragging:
+						application.dragObject.dropView = self
+						self.dropLink.read ()	# Should be first, not only because of error handling
+						application.dragObject.dragView.dragLink.read ()	# Should be last
+						application.dragObject.reset ()	
 			
 		application.mainView.widget.bind (on_touch_up = touchUp)
 					
@@ -204,7 +264,7 @@ class ViewBase:
 			if application.dragObject.dragging:
 				application.dragObject.move ()
 			else:
-				if application.dragObject.armedForDrag and application.pointerIsDown and blockDistance (application.pointerPosition, application.pointerWentDownPosition) > application.dragDistance:
+				if application.dragObject.armedForDrag and application.pointerIsDown and xDistance (application.pointerPosition, application.pointerWentDownPosition) > application.dragDistance:
 					self.pointerStartDrag ()
 					
 				#if self.pointerIsInside:
@@ -248,7 +308,7 @@ class ViewBase:
 				
 			return result	
 							
-		self.dropLink = Link (mainDataNode, lambda params: self.treeNode.change (fallibleDropResultGetter ()), None)
+		self.dropLink = Link (mainDataNode, lambda params: mainDataNode.change (fallibleDropResultGetter ()), None)
 
 		def fallibleDragResultGetter ():
 			result = mainDataNode.new
@@ -311,6 +371,14 @@ class ViewBase:
 	def dropResultGetter (self):
 		return None
 		
+	def resizeFont (self, widget = None):
+		if widget:
+			targetWidget = widget
+		else:
+			targetWidget = self.widget
+			
+		application.mainView.resizeFontOfTarget (targetWidget)
+		
 	# Utility methods
 		
 	def setText (self, text):
@@ -318,7 +386,7 @@ class ViewBase:
 		
 class EmptyView (ViewBase):
 	def bareCreateWidget (self):
-		self.widget = Label (text = 'Empty')
+		self.widget = Label ()
 
 class ColoredLabel (Label):
 	def __init__ (self, **args):		
@@ -365,7 +433,7 @@ class ButtonView (ViewBase):
 		self.widget = Button ()
 		
 		if self.actionNode:
-			self.actionLink = Link (self.actionNode, lambda params: self.actionNode.change (None, True), None)
+			self.actionLink = Link (self.actionNode, lambda params: self.actionNode.change (self.actionNode.new, True), None)
 			self.widget.on_press = self.actionLink.read
 		
 		if self.captionNode:
@@ -373,16 +441,19 @@ class ButtonView (ViewBase):
 			self.captionLink.write ()		 
 		
 class TextView (ViewBase):
-	def __init__ (self, valueNode = None, enabledNode = None):
+	def __init__ (self, valueNode = None, enabledNode = None, multiLine = False):
 		ViewBase.__init__ (self, enabledNode)	
 		self.valueNode = getNode (valueNode)
+		self.multiLine = multiLine
 		
 	def bareCreateWidget (self):
-		self.widget = TextInput ()
+		self.widget = TextInput (multiline = self.multiLine)
 		
 		if self.valueNode:
 			self.valueLink = Link (self.valueNode, lambda params: self.valueNode.change (str (self.widget.text)), lambda: self.setText (self.valueNode.new))
 			self.valueLink.write ()
+			
+		self.widget.bind (on_text_validate = self.valueLink.read)
 			
 	def focusOut (self):
 		self.valueLink.read ()
@@ -454,6 +525,7 @@ class TreeView (ViewBase):	# Views a <tree>
 		self.rootLink.write ()
 		
 		self.visibleTreeNode = Node ([])
+		
 		if self.expansionLevelNode:
 			self.visibleTreeNode.dependsOn ([self.treeNode, self.expansionLevelNode], lambda: None)
 		else:
@@ -507,11 +579,13 @@ class TreeView (ViewBase):	# Views a <tree>
 						
 					if branch.__class__ == tuple:
 						writeTree (branch [1], widgetNode, newHashPath, expansionDictionary)
+						
 
 			expansionDictionary = {}
 			fillExpansionDictionary (self.widget.root, (), expansionDictionary)
 			clearTree ()
 			writeTree (self.treeNode.new, None, (), expansionDictionary)			
+			self.resizeFont ()
 			
 		self.visibleTreeLink = Link (self.visibleTreeNode, None, bareWriteVisibleTree) 
 		self.visibleTreeLink.write ()		
@@ -562,7 +636,7 @@ class TreeView (ViewBase):	# Views a <tree>
 	
 		# tweak (self) ...
 		
-	# Overriden pointer methods
+	# Overriden methods
 
 	def pointerDown (self): # Use this event rather than selected_node, because it is the only event already occurring at mouse down, so before a drag
 		if self.pointerIsInside:
@@ -591,14 +665,11 @@ class TreeView (ViewBase):	# Views a <tree>
 				application.dragObject.restartDrop (dropView = self)
 			
 			self.oldPointedTreeViewNode = self.pointedTreeViewNode
-						
-	def pointerUp (self):
-		if self.pointerIsInside:
-			if application.dragObject.dragging:			
-				application.dragObject.dropView = self
-				self.dropLink.read ()	# Should be first, not only because of error handling
-				application.dragObject.dragView.dragLink.read ()	# Should be last
-				application.dragObject.reset ()
+										
+	def resizeFont (self):
+		ViewBase.resizeFont (self)
+		for node in self.widget.iterate_all_nodes ():
+			ViewBase.resizeFont (self, node)
 
 	# --- Default drag and drop methods
 
@@ -719,7 +790,7 @@ class ListHeadWidget (ColoredLabel):
 		self.fieldIndex = args ['fieldIndex']
 		self.max_lines = 1
 		self.halign = 'center'
-		self.extraWidth = self.listView.headerStripWidth / 2 if self.fieldIndex in (0, len (self.listView.headerNode.new) - 1) else self.listView.headerStripWidth
+		self.extraWidth = splitterGripSize / 2 if self.fieldIndex in (0, len (self.listView.headerNode.new) - 1) else splitterGripSize
 		self.listView.listHeadWidgets [self.fieldIndex] = self
 				
 		def onSize (*args):
@@ -744,6 +815,7 @@ class ListHeadWidget (ColoredLabel):
 		return self.width + self.extraWidth	
 			
 class ListItemWidget (ListItemButton):	
+
 	def __init__ (self, **args):
 		self.listView = args ['listView']
 		self.fieldIndex = args ['fieldIndex']
@@ -757,7 +829,7 @@ class ListItemWidget (ListItemButton):
 		self.size_hint_x = None
 		self.bind (size = self.onSize)
 
-		application.mainView.resizeFont (self)
+		application.mainView.resizeFontOfTarget (self)
 			
 		def onSelect (*args):
 			if self.is_selected:
@@ -777,7 +849,7 @@ class ListItemWidget (ListItemButton):
 				self.listView.scheduleReadPointedList (self.rowIndex)
 				
 		application.mainView.widget.bind (on_touch_move = touchMove)
-						
+		
 	def onSize (self, *args):	# Member, since it is also called by ListView.adaptItemSizes, initiated by a head resize
 		self.width = self.listView.listHeadWidgets [self.fieldIndex] .getGrossWidth ()
 		self.text_size = (self.width, None)
@@ -848,7 +920,7 @@ class ListView (ViewBase):
 		self.transformer = transformer
 		self.hintGetter = hintGetter = getFunction (hintGetter, lambda: None)
 		self.multiSelectNode = getNode (multiSelectNode, Node (False))
-		self.sortColumnNumberNode = getNode (sortColumnNumberNode, Node (1))
+		self.sortColumnNumberNode = getNode (sortColumnNumberNode, Node (0))
 		self.pointedColumnIndexNode = getNode (pointedColumnIndexNode, Node (0))
 		self.clickedColumnIndexNode = getNode (clickedColumnIndexNode, Node (0))
 		self.visibleColumnsNode = getNode (visibleColumnsNode, Node (0)),
@@ -864,7 +936,6 @@ class ListView (ViewBase):
 		self.key = key
 		self.tweaker = None
 		
-		self.headerStripWidth = 2 * 4	# Always choose even, since it will be halved to achieve right item width
 		self.listHeadWidgets = [None for header in self.headerNode.new]
 		
 	def bareCreateWidget (self):
@@ -876,7 +947,7 @@ class ListView (ViewBase):
 				'cls_dicts': [{
 					'cls': ListItemWidget,
 					'kwargs': {
-						'text': item [index],
+						'text': str (item [index]),
 						'listView': self,
 						'fieldIndex': index,
 						'rowIndex': rowIndex,
@@ -893,7 +964,7 @@ class ListView (ViewBase):
 			if index == len (self.headerNode.new) - 1:
 				self.headerWidget.add_widget (listHeadWidget)
 			else:
-				splitter = Splitter (sizable_from = 'right', strip_size = self.headerStripWidth, height = 25, size_hint_y = None)
+				splitter = Splitter (sizable_from = 'right', strip_size = splitterGripSize, height = 25, size_hint_y = None)
 				splitter.add_widget (listHeadWidget)
 				self.headerWidget.add_widget (splitter)
 				
@@ -903,11 +974,21 @@ class ListView (ViewBase):
 		
 		def bareWriteHeader ():
 			for index, listHeadWidget in enumerate (self.listHeadWidgets):
-				listHeadWidget.text = self.headerNode.new [index]
+				prefix = ''
+				if self.sortColumnNumberNode.touched:
+					if self.sortColumnNumberNode.new == index + 1:
+						prefix = '+ '
+					elif self.sortColumnNumberNode.new == -index - 1:
+						prefix = '- '
+			
+				listHeadWidget.text = prefix + self.headerNode.new [index]
 		
 		self.headerLink = Link (self.headerNode, None, bareWriteHeader)
 		self.headerLink.write ()
-				
+		
+		self.headerSortLink = Link (self.sortColumnNumberNode, None, bareWriteHeader)
+		self.headerUnsortLink = Link (self.listNode, None, bareWriteHeader)
+		
 		def bareReadList (params):
 			listToSort = self.listNode.new	# We're still before the change event, so don't use self.listNode.old	
 			self.listNode.change (sortList (listToSort, self.sortColumnNumberNode.new), self.transformer)
@@ -972,6 +1053,9 @@ class ListView (ViewBase):
 			self.listNode.follow (sortList (listToSort, self.sortColumnNumberNode.new), self.transformer)
 		
 		self.sortColumnNumberLink = Link (self.sortColumnNumberNode, bareReadSortColumnNumber, None)
+		
+		self.createDragDropLinks (self.listNode)
+
 
 	def scheduleReadPointedList (self, pointedItemIndex):	
 		Clock.unschedule (ListView.readPointedList)	# No problem if nothing to unschedule
@@ -984,18 +1068,27 @@ class ListView (ViewBase):
 		else:
 			Clock.schedule_once (ListView.readPointedList, application.pointedListItemSettleTime)
 		
-	# Overridden pointer methods
+	# Overridden methods
 	
 	def pointerUp (self):
-		if self.pointerIsInside:
-			self.scheduleReadPointedList (None)
-	
+		ViewBase.pointerUp (self)
+		
 	def pointerStartDrag (self):
-		if self.pointerIsInside and self.selectedListNode.new:
+		if self.kivyListView.collide_point (*application.pointerPosition) and self.selectedListNode.new:
 			application.dragObject.startDrag (dragView = self)
 		
 	def pointerLeave (self):
 		self.scheduleReadPointedList (None)
+		
+	def resizeFont (self):
+		ViewBase.resizeFont (self)
+
+		for listHeadWidget in self.listHeadWidgets:
+			ViewBase.resizeFont (self, listHeadWidget)
+			
+		for itemIndex in range (len (self.listNode.new)):
+			for fieldWidget in self.listAdapter.get_view (itemIndex) .children:
+				ViewBase.resizeFont (self, fieldWidget)
 		
 	# Default drag and drop methods
 		
@@ -1160,22 +1253,158 @@ class VGridView (GridView):
 				weightedRows.append (viewOrWeight)
 		GridView.__init__ (self, weightedRows)
 
+class SplitViewBase (ViewBase):
+	def __init__ (self, childViews, sizableFrom, orientation):
+		ViewBase.__init__ (self)
+		self.childViews = childViews
+		self.sizableFrom = sizableFrom
+		self.orientation = orientation
+
+	def bareCreateWidget (self):
+		self.widget = BoxLayout (orientation = self.orientation)
+		for index, childView in enumerate (self.childViews):
+			if index == len (self.childViews) - 1:
+				self.widget.add_widget (childView.createWidget ())
+			else:
+				splitter = Splitter (sizable_from = self.sizableFrom, strip_size = splitterGripSize, min_size = 10, max_size = 10000)
+				splitter.add_widget (childView.createWidget ())				
+				self.widget.add_widget (splitter)				
+				
+		currentViewStore () .add (self)
 		
-class MainView (App, ViewBase):
+class HSplitView (SplitViewBase):
+	def __init__ (self, childViews):
+		SplitViewBase.__init__ (self, childViews, 'right', 'horizontal')
+	
+	def getState (self):
+		return [childView.widget.parent.width / float (self.childViews [-1] .widget.width) for childView in self.childViews [:-1]]
+		
+	def setState (self, value):
+		for index, childView in enumerate (self.childViews [:-1]):
+			childView.widget.parent.size_hint_x = value [index]
+
+	state = property (getState, setState)
+		
+class VSplitView (SplitViewBase):
+	def __init__ (self, childViews):
+		SplitViewBase.__init__ (self, childViews, 'bottom', 'vertical')
+		
+	def getState (self):
+		return [childView.widget.parent.height / float (self.childViews [-1] .widget.height) for childView in self.childViews [:-1]]
+		
+	def setState (self, value):
+		for index, childView in enumerate (self.childViews [:-1]):
+			childView.widget.parent.size_hint_y = value [index]
+
+	state = property (getState, setState)
+		
+class TabbedView (ViewBase):
+	def __init__ (self, pageViews, tabsNode, indexNode = None):
+		ViewBase.__init__ (self)
+		self.pageViews = pageViews
+		self.tabsNode = getNode (tabsNode)
+		self.indexNode = Node (0) if indexNode == None else getNode (indexNode)
+		self.indexNode.addException (lambda value: value < 0 or value >= len (self.pageViews), Objection, 'Tab index out of range')
+		
+	def bareCreateWidget (self):
+		self.widget = TabbedPanel (do_default_tab = False)
+		self.widget.background_color = (0, 0, 0, 1)
+		
+		with self.widget.canvas.before:
+			Color (0.15, 0.15, 0.15, 1)
+			self.rectangle = Rectangle (pos = self.widget.pos, size = self.widget.size)
+				
+		def onSize (*args):
+			self.rectangle.size = self.widget.size
+						
+		self.widget.bind (size = onSize)
+
+		def onPos (*args):
+			self.rectangle.pos = self.widget.pos
+	
+		self.widget.bind (pos = onPos)
+		
+		def bareWriteTabs ():
+			self.widget.clear_tabs ()
+			
+			for tab, pageView in zip (self.tabsNode.new, self.pageViews):	# So if tab == '', page is hidden
+				if tab:
+					self.widget.add_widget (TabbedPanelHeader (text = tab, content = pageView.getWidget ()))				
+			
+		self.tabsLink = Link (self.tabsNode, None, bareWriteTabs)
+		self.tabsLink.write ()
+		
+		def bareReadIndex (params):
+			if not application.initializing:
+				self.indexNode.change (len (self.pageViews) - 1 - self.widget.tab_list.index (self.widget.current_tab))
+			
+		def bareWriteIndex ():
+			self.widget.switch_to (self.widget.tab_list [-self.indexNode.new - 1])
+		
+		self.indexLink = Link (self.indexNode, bareReadIndex, bareWriteIndex)
+		Clock.schedule_once (lambda *args: self.indexLink.write ())
+		# self.indexLink.writeBack = False
+		Clock.schedule_once (lambda *args: self.widget.bind (current_tab = lambda *args: self.indexLink.read ()))
+		
+class WindowViewBase (ViewBase):
 	def __init__ (
 		self,
-		clientView = None,
-		captionNode = 'Eden',
-		fontScaleNode = 1,
+		clientView,
+		captionNode,
+		closeNode
 	):
-		App.__init__ (self)
 		ViewBase.__init__ (self)
 		self.clientView = clientView
 		self.captionNode = getNode (captionNode)
-		self.fontScaleNode = getNode (fontScaleNode)
+		self.closeNode = getNode (closeNode)
+		
+	def bareCreateWidget (self):
+		self.createSpecializedWidget ()
+		self.widget.add_widget (self.clientView.createWidget ())
+	
+		def setCaption ():
+			self.widget.title = ('[DESIGN MODE] ' if application.designMode else '') + str (self.captionNode.new)
+		
+		self.captionLink = Link (
+			self.captionNode,
+			None,
+			setCaption
+		)
+		self.captionLink.write ()	
+		
+class ModalView (WindowViewBase):
+	def __init__ (
+		self,
+		clientView = None,
+		captionNode = 'Eden ModalView',
+		closeNode = None
+	):
+		WindowViewBase.__init__ (self, clientView, captionNode)
+		
+	def createSpecializedWidget (self):
+		self.widget = Popup (size = (200, 200))
+		if self.closeNode:
+			self.closeLink = link (self.closeNode, None, self.widget.dismiss)
+				
+	def execute (self):
+		self.createWidget ()
+		self.widget.open ()
+		
+class MainView (App, WindowViewBase):
+	def __init__ (
+		self,
+		clientView = None,
+		captionNode = 'Eden MainView',
+		closeNode = None,
+		fontScale = 1,
+	):
+		App.__init__ (self)
+		WindowViewBase.__init__ (self, clientView, captionNode)
+		self.fontScale = fontScale
+		
 		application.mainView = self
+		application.currentWindowView = self
 		self.pointerLabelVisible = False
-		self.transientWidgetDict = {}
 		
 		def movePointerLabel ():
 			self.pointerLabel.pos = application.pointerPosition		
@@ -1195,50 +1424,33 @@ class MainView (App, ViewBase):
 					
 		application.setPointerLabel = setPointerLabel
 		
-	def bareCreateWidget (self):
+	def createSpecializedWidget (self):
 		self.widget = FloatLayout ()
-		
-		self.widget.add_widget (self.clientView.createWidget ())
+
+		if self.closeNode:
+			self.closeLink = link (self.closeNode, None, self.widget.dismiss)
 		
 		self.pointerLabelSurface = FloatLayout (size_hint = (None, None))
 		self.widget.add_widget (self.pointerLabelSurface)
 		self.pointerLabel = Label (width = 1, height = 1, color = (1, 1, 0, 1),)
 		
 		application.dragObject = DragObject ()	# Needs self.pointerLabelSurface and self.pointerLabel
-				
-		def setTitle ():
-			self.title = ('[DESIGN MODE] ' if application.designMode else '') + str (self.captionNode.new)
 		
-		self.captionLink = Link (
-			self.captionNode,
-			None,
-			setTitle
-		)
-		self.captionLink.write ()
-		
-		def traverseResizeFont (*args):
-			self.traverseWidgets (self.widget, self.resizeFont)
-			
-		self.widget.bind (size = traverseResizeFont)
-		
-		self.fontScaleLink = Link (self.fontScaleNode, None, traverseResizeFont)
+	def resizeFont (self):
+		ViewBase.resizeFont (self, self.pointerLabel)
 
-	def resizeFont (self, widget):
-		newFontSize = self.fontScaleNode.new * self.widget.width / 70
+	def resizeFontOfTarget (self, widget):
+		newFontSize = self.fontScale * self.widget.width / 70
 		if hasattr (widget, 'font_size') and not widget.font_size == newFontSize:
 			widget.font_size = newFontSize
-	
-	def traverseWidgets (self, widget, aFunction):		
-		def traverseWidgetsRecursively (widget, aFunction):
-			aFunction (widget)
-			for childWidget in widget.children:
-				traverseWidgetsRecursively (childWidget, aFunction)
-				
-		traverseWidgetsRecursively (widget, aFunction)
-		
+			
 	def build (self):
 		return self.createWidget ()
+		
+	def on_start (self):
+		mainSizer.load ()
 		
 	def execute (self):
 		application.initializing = False
 		self.run ()
+		mainSizer.save ()

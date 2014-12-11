@@ -24,7 +24,7 @@ def setDebugExtra (self, debug):
 		Logger.setLevel (logging.CRITICAL)
 		
 Application.setDebugExtra = setDebugExtra
-application.debug = False
+application.debug = True
 
 mainViewStoreFileName = 'views.store'
 mainViewStore = Store ()
@@ -1350,14 +1350,12 @@ class WindowViewBase (ViewBase):
 	def __init__ (
 		self,
 		clientView,
-		captionNode,
-		closeNode
+		captionNode
 	):
 		ViewBase.__init__ (self)
 		self.clientView = clientView
 		self.captionNode = getNode (captionNode)
-		self.closeNode = getNode (closeNode)
-		
+
 	def bareCreateWidget (self):
 		self.createSpecializedWidget ()
 		self.widget.add_widget (self.clientView.createWidget ())
@@ -1377,21 +1375,18 @@ class ModalView (WindowViewBase):
 		self,
 		clientView = None,
 		captionNode = 'Eden ModalView',
-		closeNode = None
+		closeNode = None,
 	):
-		WindowViewBase.__init__ (self, clientView, captionNode, closeNode)
+		WindowViewBase.__init__ (self, clientView, captionNode)
 		
 	def createSpecializedWidget (self):
-		self.widget = Popup ()
-
-		if self.closeNode:
-			self.closeNode.addAction (self.widget.dismiss)	# Don't use a link, since closing can't be rolled back
+		self.widget = Popup (size = (200, 200))
 				
 	def execute (self):
 		self.createWidget ()
 		self.widget.open ()
 		
-class MainView (WindowViewBase, App):	# App must be last, unclear why
+class MainView (WindowViewBase, App):	# App should be last, unclear why
 	def __init__ (
 		self,
 		clientView = None,
@@ -1399,7 +1394,7 @@ class MainView (WindowViewBase, App):	# App must be last, unclear why
 		closeNode = None,
 		fontScale = 1,
 	):
-		WindowViewBase.__init__ (self, clientView, captionNode, closeNode)
+		WindowViewBase.__init__ (self, clientView, captionNode)
 		App.__init__ (self)
 		self.fontScale = fontScale
 		
@@ -1427,10 +1422,7 @@ class MainView (WindowViewBase, App):	# App must be last, unclear why
 		
 	def createSpecializedWidget (self):
 		self.widget = FloatLayout ()
-
-		if self.closeNode:
-			self.closeNode.addAction (self.stop)	# Don't use a link, since closing can't be rolled back
-
+		
 		self.pointerLabelSurface = FloatLayout (size_hint = (None, None))
 		self.widget.add_widget (self.pointerLabelSurface)
 		self.pointerLabel = Label (width = 1, height = 1, color = (1, 1, 0, 1),)

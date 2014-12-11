@@ -10,11 +10,15 @@
 
 import os
 
-class Anything:
+class Anything (object):
 	pass
 
 class Application (Anything):
-	pass
+	def setDebug (self, switch):
+		self.logNotifications = switch
+		self.setDebugExtra (switch)
+			
+	debug = property (None, setDebug)
 	
 application = Application ()
 app = application

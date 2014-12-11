@@ -44,6 +44,7 @@ class Node (object):							# Node representing atomary partial state in a state 
 		self.sinkNodes = []								# Nodes that depend on this node
 		self.links = []									# Zero or more links to bareRead / bareWrite pairs
 		self.exceptions = []
+		self.actions = []
 		self.validator = lambda value: True
 		
 		self.persistent = False							# Assume not worth persisting
@@ -72,7 +73,7 @@ class Node (object):							# Node representing atomary partial state in a state 
 		if hasattr (self, 'traceName') and hasattr (self, attribute):
 			print label + ',', self.traceName + '.' + attribute, '==', getattr (self, attribute)
 
-	def dependsOn (self, sourceNodes, getter):		# Lay dependency relations this node and other nodes that it depends on
+	def dependsOn (self, sourceNodes, getter = lambda: None):		# Lay dependency relations this node and other nodes that it depends on
 		if hasattr (self, 'sourceNodes'):				# If dependsOn was called before for this node
 			for sourceNode in self.sourceNodes:			#	For all nodes that this node depended upon previously
 				sourceNode.sinkNodes.remove (self)		#		Remove the old dependency
@@ -93,6 +94,10 @@ class Node (object):							# Node representing atomary partial state in a state 
 		
 	def addException (self, condition, aClass, message):
 		self.exceptions.append ((condition, aClass, message))
+		return self
+		
+	def addAction (self, action):	# Convenience method, mainly to allow call chaining, added y14m12d10
+		self.actions.append (action)
 		return self
 				
 	def invalidate (self):							# Invalidation phase, to know where to propagate and prevent cycles
@@ -167,8 +172,11 @@ class Node (object):							# Node representing atomary partial state in a state 
 				sinkNode.printTrace ('Propagate, blocked', 'currentValue')					
 									
 	def act (self):						# Called at the end of transaction, to ensure updated values, e.g. on entering an event loop
-		if hasattr (self, 'action'):	#	If this node has an action
-			self.action ()				#		Do it
+		if hasattr (self, 'action'):	# "Old style" single action functionality kept for backward compatibility
+			self.action ()
+			
+		for action in self.actions:		# Perform all "new style" chainable actions associated with this node
+			action ()
 			
 	new = property (evaluate)													# Reading property yields value of node after current event
 
@@ -205,6 +213,7 @@ class Node (object):							# Node representing atomary partial state in a state 
 				self.event = currentEvent.getNext	()								#	Make this node valid
 				
 				self.propagate ()													#	Propagate new value to dependent nodes
+				
 				transactor.act ()													#	Late, since actions may need node values and may even enter event loops
 			
 		except Refusal as refusal:
@@ -291,3 +300,4 @@ def getNode (valueOrNode, resultIfNone = None):
 			return valueOrNode
 		else:	
 			return Node (valueOrNode)
+

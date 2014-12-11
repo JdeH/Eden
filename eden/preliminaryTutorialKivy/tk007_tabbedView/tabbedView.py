@@ -8,7 +8,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the QQuickLicence for details.
 
-# splitView.py
+# tabbedView.py
 
 from eden import *
 
