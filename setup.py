@@ -8,7 +8,7 @@ def read (*paths):
 
 setup (
 	name = 'Eden',
-	version = '2.1.8 Tabbed view with persistent selection and hiding of pages.',
+	version = '2.1.9 Modal views added, div. bugs fixed',
 	description = 'Eden - Event Driven Evaluation Nodes',
 	long_description = (
 		read ('README.md') + '\n\n' +

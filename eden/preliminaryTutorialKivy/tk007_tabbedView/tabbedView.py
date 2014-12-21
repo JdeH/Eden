@@ -14,7 +14,7 @@ from eden import *
 
 nodeStore = Store ()
 
-nameNode = nodeStore.add (Node ('Change this'))
+nameNode = nodeStore.add (Node ('Blahblah'))
 shownNode = nodeStore.add (Node ([1, 2, 3, 4]))
 nrNode = nodeStore.add (Node (1))
 
@@ -31,7 +31,7 @@ mainView = MainView (
 			pageViews = [
 				LabelView ('Long, long ago, in a far away land\n(Change page list below to hide pages, change number to switch page)'),
 				TreeView (treeNode = [('there', ['was', 'a', 'king']), ('who', ['had', 'three', 'sons'])]),
-				ListView (headerNode = ['Name', 'Character'], listNode = [['John', 'Brave'], ['William', 'Noble'], ['Jack', 'Strong']]),
+				ListView (headerNode = ['Name', 'Nature'], listNode = [['John', 'Brave'], ['William', 'Noble'], ['Jack', 'Strong']]),
 				LabelView ('And they lived long and happy on the beach of Waikiki')
 			],
 			tabsNode = tabsNode,

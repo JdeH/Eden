@@ -24,18 +24,19 @@ class Store:
 	def name (self, fileName):
 		self.fileName = fileName
 
-	def setStoreFromList (self, storeList, sourceDescription):
+	def setStoreFromList (self, storeList, sourceDescription, silent):
 		for item in storeList:
 			try:
 				self.storeDictionary [item [0]] .state = item [1]
 			except Exception as exception:
-				problem = (
-					'Can not restore item ' + str (item [0]) +
-					' with value ' + str (item [1]) +
-					' from ' + sourceDescription + ', '
-				)
+				if not silent:
+					problem = (
+						'Can not restore item ' + str (item [0]) +
+						' with value ' + str (item [1]) +
+						' from ' + sourceDescription + ', '
+					)
 
-				handleNotification (Remark (problem + exMessage (exception), report = problem + exReport (exception)))
+					handleNotification (Remark (problem + exMessage (exception), report = problem + exReport (exception)))
 				
 		self.afterLoadActionNode.change (None, True)
 	
@@ -50,7 +51,7 @@ class Store:
 				
 		return storeList
 
-	def load (self, fileName = None):
+	def load (self, fileName = None, silent = False):
 		if fileName:
 			self.fileName = fileName
 	
@@ -63,7 +64,7 @@ class Store:
 			storeList = []
 			self.loaded = False
 
-		self.setStoreFromList (storeList, 'file ' + self.fileName)
+		self.setStoreFromList (storeList, 'file ' + self.fileName, silent = silent)
 				
 	def save (self, fileName = None):
 		if fileName:
@@ -73,8 +74,8 @@ class Store:
 		dump (self.getStoreAsList (), file)
 		file.close ()
 
-	def loadString (self, aString, sourceDescription = 'string'):
-		self.setStoreFromList (loads (aString), sourceDescription)
+	def loadString (self, aString, sourceDescription = 'string', silent = False):
+		self.setStoreFromList (loads (aString), sourceDescription, silent)
 
 	def saveString (self):
 		return dumps (self.getStoreAsList ())

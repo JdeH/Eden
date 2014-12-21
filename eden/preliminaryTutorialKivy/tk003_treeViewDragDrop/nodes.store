@@ -39,71 +39,71 @@ aS'Synagogues'
 p24
 atp25
 atp26
-a(S'Roads'
+a(S'Nature'
 p27
 (lp28
-(S'Roads for cars'
+(S'Public parks'
 p29
 (lp30
-S'Highways'
+S'Grass to play on'
 p31
-aS'Main roads'
+aS'Trees to climb in'
 p32
-aS'Streets'
+aS'Robust flowers'
 p33
 atp34
-a(S'Roads for bikes'
+a(S'Private parks'
 p35
 (lp36
-S'Smooth bike roads'
+S'Grass to look at'
 p37
-aS'Bumpy bike roads'
+aS'Trees to sit under'
 p38
-aS'Muddy trails'
+aS'Delicate flowers'
 p39
 atp40
-a(S'Roads for pedestrians'
+a(S'Gardens'
 p41
 (lp42
-S'Sidewalks'
+S'Grass for domestic animals'
 p43
-aS'Promenades'
+aS'Small trees'
 p44
-aS'Stairs'
+aS'Exotic flowers'
 p45
 atp46
 atp47
-a(S'Nature'
+a(S'Roads'
 p48
 (lp49
-(S'Public parks'
+(S'Roads for cars'
 p50
 (lp51
-S'Grass to play on'
+S'Highways'
 p52
-aS'Trees to climb in'
+aS'Main roads'
 p53
-aS'Robust flowers'
+aS'Streets'
 p54
 atp55
-a(S'Private parks'
+a(S'Roads for bikes'
 p56
 (lp57
-S'Grass to look at'
+S'Smooth bike roads'
 p58
-aS'Trees to sit under'
+aS'Bumpy bike roads'
 p59
-aS'Delicate flowers'
+aS'Muddy trails'
 p60
 atp61
-a(S'Gardens'
+a(S'Roads for pedestrians'
 p62
 (lp63
-S'Grass for domestic animals'
+S'Sidewalks'
 p64
-aS'Small trees'
+aS'Promenades'
 p65
-aS'Exotic flowers'
+aS'Stairs'
 p66
 atp67
 atp68

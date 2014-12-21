@@ -24,7 +24,7 @@ def setDebugExtra (self, debug):
 		Logger.setLevel (logging.CRITICAL)
 		
 Application.setDebugExtra = setDebugExtra
-application.debug = True
+application.debug = False
 
 mainViewStoreFileName = 'views.store'
 mainViewStore = Store ()
@@ -1379,18 +1379,19 @@ class ModalView (WindowViewBase):
 		captionNode = 'Eden ModalView',
 		closeNode = None
 	):
-		WindowViewBase.__init__ (self, clientView, captionNode)
+		WindowViewBase.__init__ (self, clientView, captionNode, closeNode)
 		
 	def createSpecializedWidget (self):
-		self.widget = Popup (size = (200, 200))
+		self.widget = Popup ()
+
 		if self.closeNode:
-			self.closeLink = link (self.closeNode, None, self.widget.dismiss)
+			self.closeNode.addAction (self.widget.dismiss)	# Don't use a link, since closing can't be rolled back
 				
 	def execute (self):
 		self.createWidget ()
 		self.widget.open ()
 		
-class MainView (App, WindowViewBase):
+class MainView (WindowViewBase, App):	# App must be last, unclear why
 	def __init__ (
 		self,
 		clientView = None,
@@ -1398,8 +1399,8 @@ class MainView (App, WindowViewBase):
 		closeNode = None,
 		fontScale = 1,
 	):
+		WindowViewBase.__init__ (self, clientView, captionNode, closeNode)
 		App.__init__ (self)
-		WindowViewBase.__init__ (self, clientView, captionNode)
 		self.fontScale = fontScale
 		
 		application.mainView = self
@@ -1428,8 +1429,8 @@ class MainView (App, WindowViewBase):
 		self.widget = FloatLayout ()
 
 		if self.closeNode:
-			self.closeLink = link (self.closeNode, None, self.widget.dismiss)
-		
+			self.closeNode.addAction (self.stop)	# Don't use a link, since closing can't be rolled back
+
 		self.pointerLabelSurface = FloatLayout (size_hint = (None, None))
 		self.widget.add_widget (self.pointerLabelSurface)
 		self.pointerLabel = Label (width = 1, height = 1, color = (1, 1, 0, 1),)

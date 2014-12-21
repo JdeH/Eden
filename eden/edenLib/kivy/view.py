@@ -18,8 +18,9 @@ from eden.edenLib.store import *
 from kivy.logger import Logger
 
 def setDebugExtra (self, debug):
+	return
 	if debug:
-		Logger.setLevel (logging.TRACE)
+		Logger.setLevel (logging.ERROR)
 	else:
 		Logger.setLevel (logging.CRITICAL)
 		
@@ -41,7 +42,7 @@ class MainSizer:
 		currentViewStore () .add (self)
 		
 	def load (self):
-		currentViewStore () .load ()
+		currentViewStore () .load (silent = True)	# Only main sizer can be loaded this early, don't show failure of all the rest that will be loaded later
 		
 		if hasattr (self, 'state'):	# Maybe there wasn't a state file yet
 			global kivy
@@ -200,7 +201,7 @@ class ViewBase (object):
 	def createWidget (self):
 		self.bareCreateWidget ()
 		
-		application.mainView.widget.bind (size = lambda *args: self.resizeFont ())
+		application.mainView.widget.bind (on_resize_font = lambda *args: self.resizeFont ())
 		application.mainView.widget.bind (on_change_font_scale = lambda *args: self.resizeFont ())
 		
 		def bareWriteEnabled ():
@@ -234,7 +235,7 @@ class ViewBase (object):
 			if hasattr (self.widget, 'focus') and self.widget.focus and not self.pointerIsInside:
 				self.widget.focus = False
 			
-		application.mainView.widget.bind (on_touch_down = touchDown)
+		application.mainView.widget.bind (on_touch_down_any = touchDown)
 		
 		def touchUp (*args):
 			application.oldPointerIsDown = application.pointerIsDown
@@ -251,26 +252,26 @@ class ViewBase (object):
 						application.dragObject.dragView.dragLink.read ()	# Should be last
 						application.dragObject.reset ()	
 			
-		application.mainView.widget.bind (on_touch_up = touchUp)
+		application.mainView.widget.bind (on_touch_up_any = touchUp)
 					
 		def mousePos (*args):	
 			if not application.pointerIsDown:	# If the pointer is down, touchMove will take over
 				updatePointerPosition (args [1])
-
+				
 		Window.bind (mouse_pos = mousePos)
 				
 		def touchMove (*args):	# Only called if pointer is down
 			updatePointerPosition (args [1] .pos)
 			if application.dragObject.dragging:
 				application.dragObject.move ()
-			else:
+			else:	
 				if application.dragObject.armedForDrag and application.pointerIsDown and xDistance (application.pointerPosition, application.pointerWentDownPosition) > application.dragDistance:
 					self.pointerStartDrag ()
 					
 				#if self.pointerIsInside:
 				#	application.setPointerLabel (self.hintGetter ())
 				
-		application.mainView.widget.bind (on_touch_move = touchMove)
+		application.mainView.widget.bind (on_touch_move_any = touchMove)
 								
 		if hasattr (self.widget, 'focus'):
 			def focus (*args):
@@ -438,7 +439,7 @@ class ButtonView (ViewBase):
 		
 		if self.captionNode:
 			self.captionLink = Link (self.captionNode, None, lambda: self.setText (self.captionNode.new))
-			self.captionLink.write ()		 
+			self.captionLink.write ()	 
 		
 class TextView (ViewBase):
 	def __init__ (self, valueNode = None, enabledNode = None, multiLine = False):
@@ -454,7 +455,12 @@ class TextView (ViewBase):
 			self.valueLink.write ()
 			
 		self.widget.bind (on_text_validate = self.valueLink.read)
-			
+
+	def resizeFont (self):
+		ViewBase.resizeFont (self)
+		paddingY = application.mainView.getPaddingHeight ()
+		self.widget.padding = (5, paddingY, 0, paddingY)
+		
 	def focusOut (self):
 		self.valueLink.read ()
 		
@@ -809,7 +815,7 @@ class ListHeadWidget (ColoredLabel):
 			if self.collide_point (*self.to_parent (*self.to_widget (*application.pointerPosition))):
 				self.listView.scheduleReadPointedList (None)
 
-		application.mainView.widget.bind (on_touch_move = touchMove)
+		application.mainView.widget.bind (on_touch_move_any = touchMove)
 			
 	def getGrossWidth (self):
 		return self.width + self.extraWidth	
@@ -824,7 +830,7 @@ class ListItemWidget (ListItemButton):
 		self.selected_color = (0.9, 0.9, 0.9, 1)
 		self.background_down = self.background_normal
 		ListItemButton.__init__ (self, **args)
-		self.max_lines = 1
+		self.max_lines = 25
 		self.halign = 'center'
 		self.size_hint_x = None
 		self.bind (size = self.onSize)
@@ -848,7 +854,7 @@ class ListItemWidget (ListItemButton):
 			):
 				self.listView.scheduleReadPointedList (self.rowIndex)
 				
-		application.mainView.widget.bind (on_touch_move = touchMove)
+		application.mainView.widget.bind (on_touch_move_any = touchMove)
 		
 	def onSize (self, *args):	# Member, since it is also called by ListView.adaptItemSizes, initiated by a head resize
 		self.width = self.listView.listHeadWidgets [self.fieldIndex] .getGrossWidth ()
@@ -937,13 +943,13 @@ class ListView (ViewBase):
 		self.tweaker = None
 		
 		self.listHeadWidgets = [None for header in self.headerNode.new]
-		
+				
 	def bareCreateWidget (self):
 		def rowBuilder (rowIndex, item):
 			return {
 				'text': 'aap',
 				'size_hint_y': None,
-				'height': 25,
+				'height': application.mainView.getLineHeight (),
 				'cls_dicts': [{
 					'cls': ListItemWidget,
 					'kwargs': {
@@ -1075,19 +1081,22 @@ class ListView (ViewBase):
 		
 	def pointerStartDrag (self):
 		if self.kivyListView.collide_point (*application.pointerPosition) and self.selectedListNode.new:
-			application.dragObject.startDrag (dragView = self)
+			application.dragObject.startDrag (dragView = self)	
 		
 	def pointerLeave (self):
 		self.scheduleReadPointedList (None)
 		
 	def resizeFont (self):
-		ViewBase.resizeFont (self)
-
+		ViewBase.resizeFont (self)			
+		
 		for listHeadWidget in self.listHeadWidgets:
+			listHeadWidget.parent.height = application.mainView.getLineHeight ()	# Sometimes a spliter, sometimes the headerWidget
 			ViewBase.resizeFont (self, listHeadWidget)
 			
 		for itemIndex in range (len (self.listNode.new)):
-			for fieldWidget in self.listAdapter.get_view (itemIndex) .children:
+			lineWidget = self.listAdapter.get_view (itemIndex)
+			lineWidget.height = application.mainView.getLineHeight ()
+			for fieldWidget in  lineWidget.children:
 				ViewBase.resizeFont (self, fieldWidget)
 		
 	# Default drag and drop methods
@@ -1137,10 +1146,6 @@ class ListView (ViewBase):
 	def interestingItemList (self):							# Order n rather than n**2  !!! Tidyup!!!
 		if application.initializing:
 			return []
-	
-#		if self.edited:
-#			self.edited = False
-#			return [self.listNode.new [self.editRowIndex]]
 			
 		indexNew = len (self.listNode.new) - 1
 		growth = indexNew - (len (self.listNode.old) - 1)
@@ -1181,21 +1186,15 @@ class SpanLayout (RelativeLayout):
 		self.nrOfColumns = max (self.nrOfColumns, columnIndex + columnSpan)
 		
 	def do_layout (self, *args):
-		rowHeight = int (self.height / self.nrOfRows)
-		remainingHeight = self.height - self.nrOfRows * rowHeight
-	
-		columnWidth = int (self.width / self.nrOfColumns)
-		remainingWidth = self.width - self.nrOfColumns * columnWidth
+		rowHeight = self.height / float (self.nrOfRows)
+		columnWidth = self.width / float (self.nrOfColumns)
 		
-		for taggedWidget in self.taggedWidgets:
-			heightCorrection = remainingHeight if taggedWidget [1] + taggedWidget [2] == self.nrOfRows else 0
-			widthCorrection = remainingWidth if taggedWidget [3] + taggedWidget [4] == self.nrOfColumns else 0
-		
-			taggedWidget [0] .y = self.height - (taggedWidget [1] + taggedWidget [2]) * rowHeight - heightCorrection
-			taggedWidget [0] .height = taggedWidget [2] * rowHeight + heightCorrection
+		for taggedWidget in self.taggedWidgets:		
+			taggedWidget [0] .y = int (self.height - (taggedWidget [1] + taggedWidget [2]) * rowHeight)
+			taggedWidget [0] .height = int (taggedWidget [2] * rowHeight)
 
-			taggedWidget [0] .x = taggedWidget [3] * columnWidth
-			taggedWidget [0] .width = taggedWidget [4] * columnWidth + widthCorrection
+			taggedWidget [0] .x = int (taggedWidget [3] * columnWidth)
+			taggedWidget [0] .width = int (taggedWidget [4] * columnWidth)
 		
 class GridView (ViewBase):
 	def __init__ (self, childViews):
@@ -1304,7 +1303,8 @@ class TabbedView (ViewBase):
 		self.pageViews = pageViews
 		self.tabsNode = getNode (tabsNode)
 		self.indexNode = Node (0) if indexNode == None else getNode (indexNode)
-		self.indexNode.addException (lambda value: value < 0 or value >= len (self.pageViews), Objection, 'Tab index out of range')
+		self.indexNode.addException (lambda value: value < 0 or value >= len (self.pageViews) or not self.pageWidgets [value], Objection, 'Tab index out of range')
+		self.pageWidgets = []
 		
 	def bareCreateWidget (self):
 		self.widget = TabbedPanel (do_default_tab = False)
@@ -1324,28 +1324,55 @@ class TabbedView (ViewBase):
 	
 		self.widget.bind (pos = onPos)
 		
-		def bareWriteTabs ():
-			self.widget.clear_tabs ()
-			
-			for tab, pageView in zip (self.tabsNode.new, self.pageViews):	# So if tab == '', page is hidden
-				if tab:
-					self.widget.add_widget (TabbedPanelHeader (text = tab, content = pageView.getWidget ()))				
-			
-		self.tabsLink = Link (self.tabsNode, None, bareWriteTabs)
-		self.tabsLink.write ()
-		
 		def bareReadIndex (params):
 			if not application.initializing:
-				self.indexNode.change (len (self.pageViews) - 1 - self.widget.tab_list.index (self.widget.current_tab))
+				for index, pageWidget in enumerate (self.pageWidgets):
+					if pageWidget == self.widget.current_tab:
+						self.indexNode.change (index)
+						break
 			
 		def bareWriteIndex ():
-			self.widget.switch_to (self.widget.tab_list [-self.indexNode.new - 1])
+			self.widget.switch_to (self.pageWidgets [self.indexNode.new])
 		
 		self.indexLink = Link (self.indexNode, bareReadIndex, bareWriteIndex)
 		Clock.schedule_once (lambda *args: self.indexLink.write ())
 		# self.indexLink.writeBack = False
 		Clock.schedule_once (lambda *args: self.widget.bind (current_tab = lambda *args: self.indexLink.read ()))
 		
+		def bareWriteTabs ():
+			self.widget.clear_tabs ()
+			self.pageWidgets = []
+			
+			firstIndex = -1
+			for index, (tab, pageView) in enumerate (zip (self.tabsNode.new, self.pageViews)):	# So if tab == '', page is hidden
+				if tab:
+					if firstIndex == -1:
+						firstIndex = index
+					self.pageWidgets.append (TabbedPanelHeader (text = tab, content = pageView.getWidget ()))
+					self.widget.add_widget (self.pageWidgets [-1])
+				else:
+					self.pageWidgets.append (None)
+					
+			try:
+				bareWriteIndex ()	# Restore current page
+			except:	# Current page, adapt index to page, -1 if there are no pages
+				self.indexNode.follow (firstIndex)
+				
+			self.resizeFont ()
+			
+		self.tabsLink = Link (self.tabsNode, None, bareWriteTabs)
+		self.tabsLink.write ()
+		
+	def resizeFont (self):			
+		Clock.schedule_once (self.adaptTabWidth, 1)	# This hack should really not be necessary
+
+		for tabbedPanelHeader in self.pageWidgets:
+			ViewBase.resizeFont (self, tabbedPanelHeader)
+
+	def adaptTabWidth (self, *args):
+		self.widget.tab_width = self.widget.width / (len (self.pageWidgets) + 0.5)
+
+			
 class WindowViewBase (ViewBase):
 	def __init__ (
 		self,
@@ -1359,9 +1386,21 @@ class WindowViewBase (ViewBase):
 		self.closeNode = getNode (closeNode)
 		
 	def bareCreateWidget (self):
-		self.createSpecializedWidget ()
-		self.widget.add_widget (self.clientView.createWidget ())
-	
+		self.createOuterWidget ()
+		
+		self.innerWidget  = FloatLayout ()
+		self.widget.add_widget (self.innerWidget)
+		
+		self.clientWidget = self.clientView.createWidget ()
+		self.innerWidget.add_widget (self.clientWidget)
+		
+		self.pointerLabelSurface = FloatLayout (size_hint = (1, 1))
+		self.innerWidget.add_widget (self.pointerLabelSurface)
+
+		self.widget.bind (on_touch_down = application.mainView.dispatchTouchDownAny)
+		self.widget.bind (on_touch_up = application.mainView.dispatchTouchUpAny)
+		self.widget.bind (on_touch_move = application.mainView.dispatchTouchMoveAny)
+										
 		def setCaption ():
 			self.widget.title = ('[DESIGN MODE] ' if application.designMode else '') + str (self.captionNode.new)
 		
@@ -1370,7 +1409,7 @@ class WindowViewBase (ViewBase):
 			None,
 			setCaption
 		)
-		self.captionLink.write ()	
+		self.captionLink.write ()
 		
 class ModalView (WindowViewBase):
 	def __init__ (
@@ -1381,15 +1420,29 @@ class ModalView (WindowViewBase):
 	):
 		WindowViewBase.__init__ (self, clientView, captionNode, closeNode)
 		
-	def createSpecializedWidget (self):
-		self.widget = Popup ()
+	def createOuterWidget (self):
+		def adaptSize (*args):
+			self.widget.height = application.mainView.widget.height + 15
+			self.widget.width = application.mainView.widget.width + 25
 
+		self.widget = Popup (size_hint = (None, None))
+		adaptSize ()
+		application.mainView.widget.bind (size = adaptSize)
+		
+		self.widget.bind (on_open = application.mainView.dispatchResizeFont)
+		self.widget.bind (on_open = lambda *args: application.mainView.pushPointerLabelSurface (self.pointerLabelSurface))
+		self.widget.bind (on_dismiss = lambda *args: application.mainView.popPointerLabelSurface ())	
+		
 		if self.closeNode:
 			self.closeNode.addAction (self.widget.dismiss)	# Don't use a link, since closing can't be rolled back
-				
+			
 	def execute (self):
-		self.createWidget ()
+		self.getWidget ()
 		self.widget.open ()
+		
+	def resizeFont (self):
+		ViewBase.resizeFont (self)
+		self.widget.title_size = application.mainView.getFontSize ()
 		
 class MainView (WindowViewBase, App):	# App must be last, unclear why
 	def __init__ (
@@ -1405,48 +1458,92 @@ class MainView (WindowViewBase, App):	# App must be last, unclear why
 		
 		application.mainView = self
 		application.currentWindowView = self
+		self.pointerLabelSurfaces = []
 		self.pointerLabelVisible = False
 		
 		def movePointerLabel ():
-			self.pointerLabel.pos = application.pointerPosition		
+			self.pointerLabel.pos = application.pointerPosition	
 				
 		application.movePointerLabel = movePointerLabel
 		
 		def setPointerLabel (text = None):
 			if text is None:
-				self.pointerLabelSurface.remove_widget (self.pointerLabel)
+				self.pointerLabelSurfaces [-1] .remove_widget (self.pointerLabel)
 				self.pointerLabelVisible = False
 				self.pointerLabelText = ''
 			else:
 				self.pointerLabel.text = text
 				if not self.pointerLabelVisible:
-					self.pointerLabelSurface.add_widget (self.pointerLabel)
+					self.pointerLabelSurfaces [-1] .add_widget (self.pointerLabel)
 					self.pointerLabelVisible = True
 					
 		application.setPointerLabel = setPointerLabel
 		
-	def createSpecializedWidget (self):
+	def pushPointerLabelSurface (self, pointerLabelSurface):
+		self.pointerLabelSurfaces.append (pointerLabelSurface)
+	
+	def popPointerLabelSurface (self):
+		self.pointerLabelSurfaces.pop ()
+		
+	def createOuterWidget (self):
 		self.widget = FloatLayout ()
-
+							
+		self.widget.__class__.on_resize_font = lambda *args: None
+		self.widget.register_event_type ('on_resize_font')		
+		self.widget.bind (size = self.dispatchResizeFont)
+		
+		self.widget.__class__.on_touch_down_any = lambda *args: None
+		self.widget.register_event_type ('on_touch_down_any')		
+		
+		self.widget.__class__.on_touch_up_any = lambda *args: None
+		self.widget.register_event_type ('on_touch_up_any')		
+		
+		self.widget.__class__.on_touch_move_any = lambda *args: None
+		self.widget.register_event_type ('on_touch_move_any')		
+		
 		if self.closeNode:
 			self.closeNode.addAction (self.stop)	# Don't use a link, since closing can't be rolled back
 
-		self.pointerLabelSurface = FloatLayout (size_hint = (None, None))
-		self.widget.add_widget (self.pointerLabelSurface)
-		self.pointerLabel = Label (width = 1, height = 1, color = (1, 1, 0, 1),)
+	def dispatchResizeFont (self, *args):
+		self.widget.dispatch ('on_resize_font', args)
+
+	def dispatchTouchDownAny (self, *args):
+		self.widget.dispatch ('on_touch_down_any', args [1])
+
+	def dispatchTouchUpAny (self, *args):
+		self.widget.dispatch ('on_touch_up_any', args [1])
+
+	def dispatchTouchMoveAny (self, *args):
+		self.widget.dispatch ('on_touch_move_any', args [1])
+
+	def getFontNorm (self):
+		return self.fontScale * float (min (self.widget.height, self.widget.width))
+
+	def getFontSize (self):
+		return self.getFontNorm () / 60
 		
-		application.dragObject = DragObject ()	# Needs self.pointerLabelSurface and self.pointerLabel
+	def getLineHeight (self):
+		return int (application.mainView.getFontNorm () / 30)
 		
+	def getPaddingHeight (self):
+		return int (application.mainView.getFontNorm () / 120)
+				
 	def resizeFont (self):
 		ViewBase.resizeFont (self, self.pointerLabel)
 
 	def resizeFontOfTarget (self, widget):
-		newFontSize = self.fontScale * self.widget.width / 70
+		newFontSize = self.getFontSize ()
 		if hasattr (widget, 'font_size') and not widget.font_size == newFontSize:
 			widget.font_size = newFontSize
 			
 	def build (self):
-		return self.createWidget ()
+		self.createWidget ()
+
+		self.pushPointerLabelSurface (self.pointerLabelSurface)
+		self.pointerLabel = Label (size_hint = (None, None), size = (1, 1), color = (1, 1, 0, 1),)
+		
+		application.dragObject = DragObject ()	# Needs self.pointerLabelSurface and self.pointerLabel
+		return self.widget
 		
 	def on_start (self):
 		mainSizer.load ()

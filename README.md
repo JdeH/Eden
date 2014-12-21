@@ -33,8 +33,7 @@ Recent changes
 ==============
 
 Kivy version:
-	Tabbed view with persistent current page and programmatic page switch and page hide added.
-	Multi-panel HSplitView and VSplitView with persistent splitter positions added.
+	Modal views (dialogs) added
 
 WinForms version:
 	None

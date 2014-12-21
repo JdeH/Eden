@@ -58,7 +58,7 @@ captionNode.dependsOn (
 # ====== Views
 
 mainView = MainView (
-	GridView ([
+	GridView ([	
 		[], 3,
 		[EmptyView (), ButtonView (captionNode = 'Press to launch dialog 0', actionNode = launch0Node), 2, EmptyView ()],
 		[EmptyView (), LabelView (captionNode = captionNode), 2], 2,
