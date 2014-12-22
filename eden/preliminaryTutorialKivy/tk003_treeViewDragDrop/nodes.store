@@ -5,71 +5,71 @@ p2
 (S'City'
 p4
 (lp5
-(S'Buildings'
+(S'Nature'
 p6
 (lp7
-(S'Houses'
+(S'Public parks'
 p8
 (lp9
-S'Flats'
+S'Grass to play on'
 p10
-aS'Bungalows'
+aS'Trees to climb in'
 p11
-aS'Campers'
+aS'Robust flowers'
 p12
 atp13
-a(S'Business estate'
+a(S'Private parks'
 p14
 (lp15
-S'Shops'
+S'Grass to look at'
 p16
-aS'Offices'
+aS'Trees to sit under'
 p17
-aS'Factories'
+aS'Delicate flowers'
 p18
 atp19
-a(S'Religious buildings'
+a(S'Gardens'
 p20
 (lp21
-S'Churches'
+S'Grass for domestic animals'
 p22
-aS'Mosques'
+aS'Small trees'
 p23
-aS'Synagogues'
+aS'Exotic flowers'
 p24
 atp25
 atp26
-a(S'Nature'
+a(S'Buildings'
 p27
 (lp28
-(S'Public parks'
+(S'Houses'
 p29
 (lp30
-S'Grass to play on'
+S'Flats'
 p31
-aS'Trees to climb in'
+aS'Bungalows'
 p32
-aS'Robust flowers'
+aS'Campers'
 p33
 atp34
-a(S'Private parks'
+a(S'Business estate'
 p35
 (lp36
-S'Grass to look at'
+S'Shops'
 p37
-aS'Trees to sit under'
+aS'Offices'
 p38
-aS'Delicate flowers'
+aS'Factories'
 p39
 atp40
-a(S'Gardens'
+a(S'Religious buildings'
 p41
 (lp42
-S'Grass for domestic animals'
+S'Churches'
 p43
-aS'Small trees'
+aS'Mosques'
 p44
-aS'Exotic flowers'
+aS'Synagogues'
 p45
 atp46
 atp47

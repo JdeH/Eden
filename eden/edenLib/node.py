@@ -261,7 +261,6 @@ class Link:	# Link between a node and a particular bareRead / bareWrite pair of 
 	def	__init__ (self, node, bareRead, bareWrite):					# Tie link to node and to bareRead / bareWrite pair
 		node.links.append (self)										# Add this link to links of node
 		
-
 		self.bareRead = bareRead if bareRead else lambda params: None	# Remember bareRead
 		self.reading = False											# Not busy reading
 		

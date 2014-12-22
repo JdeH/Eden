@@ -63,6 +63,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
+from kivy.uix.dropdown import DropDown
 from kivy.uix.splitter import Splitter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
@@ -463,6 +464,72 @@ class TextView (ViewBase):
 		
 	def focusOut (self):
 		self.valueLink.read ()
+		
+# <options> = OrderedDict ([<optionId>: <optionName>, ...])
+# <selectedOption> = <optionId>
+		
+class DropDownView (ViewBase):
+	def __init__ (
+		self,
+		optionsNode,
+		selectedOptionIdNode,
+		enabledNode = None
+	):
+		ViewBase.__init__ (self, enabledNode)
+		
+		self.optionsNode = getNode (optionsNode)
+		self.selectedOptionIdNode = getNode (selectedOptionIdNode)
+		
+	def bareCreateWidget (self):
+		self.dropDown = DropDown ()
+		self.widget = Button ()
+		self.widget.background_color = (0, 0, 1, 1)
+		self.widget.bind (on_release = self.dropDown.open)
+		
+		def select (optionId):
+			self.dropDown.select (self.optionsNode.new [optionId])
+			self.widget.text = self.optionsNode.new [optionId]
+			self.selectedOptionIdLink.read (optionId)
+		
+		def writeOptions (*arg):
+			self.dropDown.clear_widgets ()
+			self.buttons = {}
+			for optionId in self.optionsNode.new:
+				optionName = self.optionsNode.new [optionId]
+				button = Button (
+					text = optionName,
+					size_hint_y = None,
+				)
+				
+				def bindButton (optionId = optionId):
+					button.bind (on_release = lambda *args: select (optionId))
+					
+				bindButton ()
+				
+				self.buttons [optionId] = button
+				self.dropDown.add_widget (button)
+				
+			self.widget.text = self.optionsNode.new [self.selectedOptionIdNode.new]
+			self.resizeFont ()
+				
+		self.optionsLink = Link (self.optionsNode, None, writeOptions)
+		self.optionsLink.write ()
+		
+		def bareReadSelectedOptionId (params):
+			self.selectedOptionIdNode.change (params [0])
+			
+		def bareWriteSelectedOptionId ():
+			select (self.selectedOptionIdNode.new)
+		
+		self.selectedOptionIdLink = Link (self.selectedOptionIdNode, bareReadSelectedOptionId, bareWriteSelectedOptionId)
+		self.selectedOptionIdLink.write ()
+		
+	def resizeFont (self):
+		ViewBase.resizeFont (self)
+		for optionId in self.optionsNode.new:
+			button = self.buttons [optionId]
+			button.height = application.mainView.getLineHeight ()
+			ViewBase.resizeFont (self, button)
 		
 # <tree> = [<branch>, ...]
 # <branch> = <item> | (<item>, <tree>)
@@ -1371,7 +1438,6 @@ class TabbedView (ViewBase):
 
 	def adaptTabWidth (self, *args):
 		self.widget.tab_width = self.widget.width / (len (self.pageWidgets) + 0.5)
-
 			
 class WindowViewBase (ViewBase):
 	def __init__ (
@@ -1402,7 +1468,7 @@ class WindowViewBase (ViewBase):
 		self.widget.bind (on_touch_move = application.mainView.dispatchTouchMoveAny)
 										
 		def setCaption ():
-			self.widget.title = ('[DESIGN MODE] ' if application.designMode else '') + str (self.captionNode.new)
+			self.titleWidget.title = ('[DESIGN MODE] ' if application.designMode else '') + str (self.captionNode.new)
 		
 		self.captionLink = Link (
 			self.captionNode,
@@ -1426,6 +1492,7 @@ class ModalView (WindowViewBase):
 			self.widget.width = application.mainView.widget.width + 25
 
 		self.widget = Popup (size_hint = (None, None))
+		self.titleWidget = self.widget
 		adaptSize ()
 		application.mainView.widget.bind (size = adaptSize)
 		
@@ -1487,6 +1554,7 @@ class MainView (WindowViewBase, App):	# App must be last, unclear why
 		
 	def createOuterWidget (self):
 		self.widget = FloatLayout ()
+		self.titleWidget = self
 							
 		self.widget.__class__.on_resize_font = lambda *args: None
 		self.widget.register_event_type ('on_resize_font')		
