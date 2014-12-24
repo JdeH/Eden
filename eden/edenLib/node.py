@@ -45,7 +45,7 @@ class Node (object):							# Node representing atomary partial state in a state 
 		self.links = []									# Zero or more links to bareRead / bareWrite pairs
 		self.exceptions = []
 		self.actions = []
-		self.validator = lambda value: True
+		self.validator = lambda value: True				# Validators are deprecated, use exceptions instead
 		
 		self.persistent = False							# Assume not worth persisting
 		self.evaluating = False
@@ -116,14 +116,14 @@ class Node (object):							# Node representing atomary partial state in a state 
 
 	def validate (self):
 		for exception in self.exceptions:
-			try:
-				if exception [0] (self.currentValue):
-					raise exception [1] (exception [2])
-			except TypeError:
+			try:	# Try and except block swapped y14m12d24
 				if exception [0] ():
 					raise exception [1] (exception [2])
+			except TypeError:						# Checkfunctions with self.currentValue parameter are deprecated
+				if exception [0] (self.currentValue):
+					raise exception [1] (exception [2])
 	
-		if not self.validator (self.currentValue):
+		if not self.validator (self.currentValue):	# Validators are deprecated
 			raise Error ('Node value invalid')
 
 	def evaluate (self):							# Evaluation phase, two way propagation

@@ -33,6 +33,7 @@ Recent changes
 ==============
 
 Kivy version:
+	Dropdown menus added
 	Modal views (dialogs) added
 
 WinForms version:
@@ -74,7 +75,7 @@ Learning Eden
 Although the tutorial examples are simple for anyone to comprehend, they by far don't cover all the features.
 Moreover they are too small to reveal issues of overall program organisation, like the use of the Module mechanism.
 Using Eden in an effective way for a non-trivial app has a steep (but short) learing curve.
-It has proven feasible to get a "fresh" developer upto speed in a few days of side by side tutoring. There's a real need for freely available elaborated example, though.
+It has proven feasible to get a "fresh" developer upto speed in a few days of side by side tutoring. There's a real need for a freely available elaborated example, though.
 Currently I concentrate upon the CPython + Kivy version, since mobile- and tablet platforms are where most of the action is. One public domain application that uses the IronPython + WinForms version is Wave (see www.qquick.org).
 It is, however, not yet complete and to specialistic to serve as an example.
 A killer app would help. As soon as the CPython + Kivy version has some body, I hope to come up with a free multiplatform app that proves the point as well as is suitable as an elaborated example.

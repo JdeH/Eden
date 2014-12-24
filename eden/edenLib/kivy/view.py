@@ -64,6 +64,8 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.dropdown import DropDown
+from kivy.uix.checkbox import CheckBox
+from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.splitter import Splitter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
@@ -440,8 +442,80 @@ class ButtonView (ViewBase):
 		
 		if self.captionNode:
 			self.captionLink = Link (self.captionNode, None, lambda: self.setText (self.captionNode.new))
-			self.captionLink.write ()	 
+			self.captionLink.write ()
+			
+originalOnTouchDown = CheckBox.on_touch_down
+			
+def patchedOnTouchDown (self, touch):	# Behave like a checkbox rather then like a radio button
+	oldGroup = self.group
+	self.group = None
+	originalOnTouchDown (self, touch)
+	self.group = oldGroup
+				
+CheckBox.on_touch_down = patchedOnTouchDown
+			
+class SwitchView (ViewBase):
+	def __init__ (self, stateNode = None, captionNode = None, kind = 'check'):	# Kind can be 'check', 'radio' or 'toggle'.
+		ViewBase.__init__ (self)
+		self.stateNode = getNode (stateNode)
+		self.captionNode = getNode (captionNode)
+		self.kind = kind
+	
+	def bareCreateWidget (self):	
+		if self.kind == 'toggle':
+			self.widget = ToggleButton ()
+						
+			if self.stateNode:
+				def bareReadState (params):
+					self.stateNode.change (self.widget.state == 'down')
+			
+				def bareWriteState ():
+					self.widget.state = 'down' if self.stateNode.new else 'normal'
+
+				self.widget.bind (on_press = lambda *args: self.stateLink.read ())
+			
+			if self.captionNode:
+				def bareWriteCaption ():
+					self.widget.text = str (self.captionNode.new)
+		else:
+			self.widget = BoxLayout ()
+			
+			self.switch = CheckBox (group = self if self.kind == 'radio' else None, size_hint_x = 0.5)	# Never the same group, since logic is handled only by nodes
+			self.widget.add_widget (self.switch)
+				
+			self.label = Label ()
+			def setTextSize (*args):
+				self.label.text_size = (self.label.width, self.label.text_size [1])
+			self.label.bind (size = setTextSize)			
+			self.widget.add_widget (self.label)
+			
+			if self.stateNode:
+				def bareReadState (params):
+					self.stateNode.change (self.switch.active)
+			
+				def bareWriteState ():
+					self.switch.active = self.stateNode.new			
+			
+				self.switch.bind (on_touch_up = lambda *args: self.stateLink.read ())
+				
+			if self.captionNode:
+				def bareWriteCaption ():
+					self.label.text = str (self.captionNode.new)
 		
+		if self.stateNode:
+			self.stateLink = Link (self.stateNode, bareReadState, bareWriteState)
+			self.stateLink.write ()
+			
+		if self.captionNode:
+			self.captionLink = Link (self.captionNode, None, bareWriteCaption)
+			self.captionLink.write ()	 
+
+	def resizeFont (self):
+		if self.kind == 'toggle':
+			ViewBase.resizeFont (self)
+		else:
+			ViewBase.resizeFont (self, self.label)
+			
 class TextView (ViewBase):
 	def __init__ (self, valueNode = None, enabledNode = None, multiLine = False):
 		ViewBase.__init__ (self, enabledNode)	
@@ -1403,7 +1477,6 @@ class TabbedView (ViewBase):
 		
 		self.indexLink = Link (self.indexNode, bareReadIndex, bareWriteIndex)
 		Clock.schedule_once (lambda *args: self.indexLink.write ())
-		# self.indexLink.writeBack = False
 		Clock.schedule_once (lambda *args: self.widget.bind (current_tab = lambda *args: self.indexLink.read ()))
 		
 		def bareWriteTabs ():

@@ -47,7 +47,7 @@ mainView = MainView (
 		[EmptyView (), 4, DropDownView (optionsNode = animalsNode, selectedOptionIdNode = animalIdNode), 2, EmptyView (), 4],
 		[LabelView (animalNameNode), 10], 5
 	]),
-	captionNode = 'Try the dropdown menu buttons. See source code for node persistence.',
+	captionNode = 'Try the dropdown menu buttons. And try persistence by restarting the app.',
 	fontScale = 2
 )
 

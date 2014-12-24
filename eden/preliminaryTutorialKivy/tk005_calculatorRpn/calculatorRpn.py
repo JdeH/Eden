@@ -14,9 +14,9 @@ from eden import *
 
 # --- Constants
 
-Digits = list ('0123456789')
-Operators = list ('+-*/')
-Open, Terminated, Entered = range (3)
+digits = '0123456789'
+operators = '+-*/'
+open, terminated, entered = range (3)
 
 # --- Persistence
 
@@ -24,8 +24,8 @@ nodeStore = Store ()
 
 # --- Local nodes
 
-doDigitNodes = [Node (None) .tagged (digit) for digit in Digits]
-doOperatorNodes = [Node (None) .tagged (operator) for operator in Operators]
+doDigitNodes = [Node (None) .tagged (digit) for digit in digits]
+doOperatorNodes = [Node (None) .tagged (operator) for operator in operators]
 doDotNode = Node (None) .tagged ('.')
 doChangeSignNode = Node (None) .tagged ('+/-')
 doEnterNode = Node (None) .tagged ('enter')
@@ -35,7 +35,7 @@ doKeyNodes = doDigitNodes + doOperatorNodes + [doDotNode, doChangeSignNode, doEn
 
 inputNode = Node ('')
 stackNode = nodeStore.add (Node (['0', '0', '0', '0']))
-stateNode = Node (Terminated)
+stateNode = Node (terminated)
 displayNode = Node ()
 
 # --- Dependencies
@@ -45,10 +45,10 @@ inputNode.dependsOn (doKeyNodes, lambda: triggerNode () .tag)
 def getStack ():
 	o = stackNode.old
 	if inputNode.new == '+/-': return [str (-1 * eval (o [0])), o [1], o [2], o [3]]
-	elif inputNode.new in Operators: return [str (eval ('1.*' + o [1] + inputNode.new + o [0])), o [2], o [3], o [3]]
-	elif inputNode.new in Digits + ['.']:
-		if stateNode.old == Terminated: return [inputNode.new, o [0], o [1], o [2]]
-		elif stateNode.old == Entered: return [inputNode.new, o [1], o [2], o [3]]
+	elif inputNode.new in operators: return [str (eval ('1.*' + o [1] + inputNode.new + o [0])), o [2], o [3], o [3]]
+	elif inputNode.new in digits + '.':
+		if stateNode.old == terminated: return [inputNode.new, o [0], o [1], o [2]]
+		elif stateNode.old == entered: return [inputNode.new, o [1], o [2], o [3]]
 		else: return [o [0] + inputNode.new, o [1], o [2], o [3]]
 	elif inputNode.new == 'enter': return [o [0], o [0], o [1], o [2]]
 	else: return ['', o [1], o [2], o [3]]
@@ -56,10 +56,10 @@ def getStack ():
 stackNode.dependsOn ([inputNode], getStack)
 
 def getState ():
-	if inputNode.new in Operators: return Terminated
-	elif inputNode.new == 'enter': return Entered
+	if inputNode.new in operators: return terminated
+	elif inputNode.new == 'enter': return entered
 	elif inputNode.new == '+/-': return stateNode.old
-	else: return Open
+	else: return open
 		
 stateNode.dependsOn ([inputNode], getState)
 
