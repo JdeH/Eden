@@ -10,7 +10,7 @@
 
 # treeView.py
 
-from eden import *
+from org.qquick.eden import *
 
 treeNode = Node ([
 	('ape', [

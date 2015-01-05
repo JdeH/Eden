@@ -16,9 +16,9 @@ clr.AddReference ('System.Windows.Forms')
 from System import Drawing
 from System.Windows import Forms
 
-from eden.edenLib.base import *
-from eden.edenLib.util import *
-from eden.edenLib.view import *
+from ...edenLib.base import *
+from ...edenLib.util import *
+from ...edenLib.view import *
 
 class Font:
 	Families = [Drawing.FontFamily.GenericMonospace, Drawing.FontFamily.GenericSansSerif, Drawing.FontFamily.GenericSerif]

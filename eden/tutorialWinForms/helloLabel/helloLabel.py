@@ -10,7 +10,7 @@
 
 # helloLabel.py
 
-from eden import *
+from org.qquick.eden import *
 
 text = 'Hello, World'
 

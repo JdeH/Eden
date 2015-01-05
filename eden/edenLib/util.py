@@ -8,11 +8,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the QQuickLicence for details.
 
-from eden.edenLib.base import *
-from eden.edenLib.util import *
+from .base import *
+from .util import *
 
 if 'WinForms' in application.platform:
-	from eden.edenLib.winForms.util import *
+	from .winForms.util import *
 			
 elif 'Kivy' in application.platform:
-	from eden.edenLib.kivy.util import *
+	from .kivy.util import *

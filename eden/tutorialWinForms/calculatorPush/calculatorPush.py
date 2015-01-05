@@ -10,7 +10,7 @@
 
 # calculatorPush.py
 
-from eden import *
+from org.qquick.eden import *
 
 def safeDivide (x, y):
 	if y: return x / y

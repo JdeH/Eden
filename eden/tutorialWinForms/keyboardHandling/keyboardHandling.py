@@ -10,7 +10,7 @@
 
 # keyboardHandling.py
 
-from eden import *
+from org.qquick.eden import *
 
 keysDownNode = Node (set ([]))
 keysDownEventCountNode = Node (0)

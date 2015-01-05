@@ -10,7 +10,7 @@
 
 # pdProjectionDialog.py
 
-from eden import *
+from org.qquick.eden import *
 
 from pdAddPointsDialog import *
 from pdRemovePointsDialog import *

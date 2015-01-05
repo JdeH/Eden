@@ -10,7 +10,7 @@
 
 # helloNode.py
 
-from eden import *
+from org.qquick.eden import *
 
 textNode = Node ('Hello, World')
 

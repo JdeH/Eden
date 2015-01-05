@@ -1,4 +1,4 @@
-from eden import *
+from org.qquick.eden import *
 
 do1Node = Node (None)
 do2Node = Node (None)

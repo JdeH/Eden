@@ -10,15 +10,15 @@
 
 # dropDownView.py
 
-from eden import *
+from org.qquick.eden import *
 from collections import OrderedDict
 
 nodeStore = Store ()
 
 # === Nodes
 
-# Options have ids that are language independent.
-# The names of the options may change, depending on the language.
+# Options in an DropDownView should have ids that are language independent.
+# The visible names of the options may change, depending on the language of your user interface.
 # It's the selected id that is persistent with a DropDownView, not the name, since that may change.
 # In general, terminology directly showing up in a user interface often changes and should not determine program logic.
 

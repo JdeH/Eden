@@ -12,7 +12,7 @@ import os
 from copy import *
 from string import *
 
-from eden.edenLib.base import *
+from ..base import *
 
 try:
 	from random import *

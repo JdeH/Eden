@@ -10,8 +10,8 @@
 
 import sys
 
-from eden.edenLib.base import *
-from eden.edenLib.util import *
+from .base import *
+from .util import *
 
 currentEvent = UniqueNumber (1)
 triggerNode = CallableValue ()

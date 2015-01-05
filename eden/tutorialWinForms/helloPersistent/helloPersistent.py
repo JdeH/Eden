@@ -10,7 +10,7 @@
 
 # helloPersistent.py
 
-from eden import *
+from org.qquick.eden import *
 
 nodeStore = Store ()
 

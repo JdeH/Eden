@@ -10,7 +10,7 @@
 
 # helloLabelTweaked.py
 
-from eden import *
+from org.qquick.eden import *
 
 # --- Definition of a simple tweaker
 

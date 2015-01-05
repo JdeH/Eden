@@ -10,7 +10,7 @@
 
 # dropDownView.py
 
-from eden import *
+from org.qquick.eden import *
 from collections import OrderedDict
 
 nodeStore = Store ()
@@ -34,8 +34,23 @@ groupNodes = [Node (True)] + [Node (False) for i in range (1, groupSize)]	# Sele
 freeNodes = [Node (False) for i in range (groupSize)]	# Select none initially
 
 for groupNode in groupNodes:
-	groupNode.dependsOn (groupNodes, lambda groupNode = groupNode: groupNode.triggered)	# Make nodes mutually exclusive	
-	groupNode.addException (lambda groupNode = groupNode: groupNode.triggered and groupNode.old, Objection, 'Deselect only by selecting another')	# Block explicit deselection
+	# The unique node, whose view was clicked or tapped starting the current event, is called the trigger node.
+	# It can be obtained as result of calling global function 'triggerNode ()' that is part of Eden.
+	# Also, if a node was the trigger node, its attribute 'triggered' is True.
+	
+	# All DEPENDENT nodes, that is all nodes EXCEPT THE TRIGGER NODE are computed by calling the evalutation function, in this case the lambda function.
+	# Hence the line below has the effect of setting all non-trigger nodes to False, making the views mutually exclusive.
+	groupNode.dependsOn (groupNodes, lambda groupNode = groupNode: groupNode.triggered)
+	
+	# The trigger node itself is never computed but determined directly from the GUI.
+	# In this example, always exactly one group node should remain True.
+	# To prevent the trigger node from being deselected by clicking its view, an exception is added.
+	# If the old value of a node was True, clicking it will try to make it False.
+	# But since an exception is thrown, rollback of the GUI over the last event is performed.
+	# So if the trigger node was True but is clicked and hence becomes False, it will be rolled back to state True.
+	# If this example is run from a console window, an exception message will be printed.
+	# In real world applications, Eden is configured in such a way that exception messages are shown by popup windows and/or logged to a file.
+	groupNode.addException (lambda groupNode = groupNode: groupNode.triggered and groupNode.old, Objection, 'Deselect only by selecting another')
 	
 captionNode = Node () .dependsOn (groupNodes + freeNodes, lambda: [node.new for node in (groupNodes + freeNodes)])
 	

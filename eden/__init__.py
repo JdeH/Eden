@@ -8,9 +8,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the QQuickLicence for details.
 
-from eden.edenLib.base import *
-from eden.edenLib.util import *
-from eden.edenLib.xml import *
+from .edenLib.base import *
+from .edenLib.util import *
+from .edenLib.xml import *
 
 try:
 	from config import *
@@ -36,13 +36,13 @@ except:
 	except:
 		pass
 
-from eden.edenLib.platform import *
-from eden.edenLib.store import *
-from eden.edenLib.node import *	
-from eden.edenLib.view import *
-from eden.edenLib.panel import *
-from eden.edenLib.module import *
+from .edenLib.platform import *
+from .edenLib.store import *
+from .edenLib.node import *	
+from .edenLib.view import *
+from .edenLib.panel import *
+from .edenLib.module import *
 
-from eden.edenExtra.tweakers import *
+from .edenExtra.tweakers import *
 
 

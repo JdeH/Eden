@@ -10,7 +10,7 @@
 
 # modalView.py
 
-from eden import *
+from org.qquick.eden import *
 
 application.debug = True	# Request detailed exeption reports, handy while experimenting
 
@@ -78,7 +78,8 @@ dialog0 = ModalView (
 		[ButtonView (captionNode = 'OK', actionNode = ok0Node), ButtonView (captionNode = 'Cancel', actionNode = cancel0Node)]
 	]),
 	closeNode = close0Node,
-	captionNode = 'Dialog 0'
+	captionNode = 'Dialog 0',
+	relativeSize = (0.8, 0.8)
 )
 
 dialog1 = ModalView (
@@ -90,7 +91,8 @@ dialog1 = ModalView (
 		[ButtonView (captionNode = 'OK', actionNode = ok1Node), 10, ButtonView (captionNode = 'Cancel', actionNode = cancel1Node), 10]
 	]),
 	closeNode = close1Node,
-	captionNode = 'Dialog 1'
+	captionNode = 'Dialog 1',
+	relativeSize = (0.7, 0.7)
 )
 
 # ====== Actions

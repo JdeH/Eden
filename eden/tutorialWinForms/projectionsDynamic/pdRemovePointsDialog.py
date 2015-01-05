@@ -10,7 +10,7 @@
 
 # removePointsDialog.py
 
-from eden import *
+from org.qquick.eden import *
 
 from pdBase import *
 

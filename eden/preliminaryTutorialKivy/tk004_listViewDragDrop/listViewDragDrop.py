@@ -11,7 +11,7 @@
 # listViewDragDrop.py
 
 import random as rd
-from eden import *
+from org.qquick.eden import *
 
 columnIndices = range (3)
 

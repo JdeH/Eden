@@ -1,4 +1,4 @@
-from node import *
+from .node import *
 
 class Module:
 	def __init__ (self, moduleKey = '', defineParts = False):

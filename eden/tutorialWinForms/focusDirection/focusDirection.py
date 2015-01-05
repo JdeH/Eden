@@ -10,7 +10,7 @@
 
 # focusDirection.py
 
-from eden import *
+from org.qquick.eden import *
 
 Mountain, Valley = range (2)
 radioNode = Node (0)

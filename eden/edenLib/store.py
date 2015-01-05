@@ -9,9 +9,9 @@
 # See the QQuickLicence for details.
 
 from cPickle import *
-from eden.edenLib.base import *
-from eden.edenLib.util import *
-from eden.edenLib.node import *
+from .base import *
+from .util import *
+from .node import *
 
 class Store:
 	def __init__ (self):

@@ -10,7 +10,7 @@
 
 # filePathDialog.py
 
-from eden import *
+from org.qquick.eden import *
 
 fileListNode = Node ([])
 doFileDialogNode = Node (None)

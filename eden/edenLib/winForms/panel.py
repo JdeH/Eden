@@ -8,9 +8,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the QQuickLicence for details.
 
-from eden.edenLib.node import *
-from eden.edenLib.store import *
-from eden.edenLib.view import *
+from ..node import *
+from ..store import *
+from ..view import *
 
 # import sys
 

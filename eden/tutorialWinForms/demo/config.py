@@ -8,7 +8,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the QQuickLicence for details.
 
-from eden import *
+from org.qquick.eden import *
 
 application.projectDirectory = application.edenDirectory + '/tutorialWinForms/demo/project'
 application.bitMapDirectories = [application.edenLibDirectory + '/icons']

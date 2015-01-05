@@ -10,6 +10,6 @@
 
 # helloTitle.py
 
-from eden import *
+from org.qquick.eden import *
 
 MainView (FillerView (), 'Hello, World') .execute ()

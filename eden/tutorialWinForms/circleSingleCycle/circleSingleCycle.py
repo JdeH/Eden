@@ -11,7 +11,7 @@
 # circleSingleCycle.py
 
 from math import *
-from eden import *
+from org.qquick.eden import *
 
 nodeStore = Store ()
 

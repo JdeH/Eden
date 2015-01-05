@@ -5,105 +5,105 @@ p2
 (S'City'
 p4
 (lp5
-(S'Nature'
+(S'Buildings'
 p6
 (lp7
-(S'Public parks'
+(S'Houses'
 p8
 (lp9
-S'Grass to play on'
+S'Flats'
 p10
-aS'Trees to climb in'
+aS'Bungalows'
 p11
-aS'Robust flowers'
+aS'Campers'
 p12
 atp13
-a(S'Private parks'
+a(S'Business estate'
 p14
 (lp15
-S'Grass to look at'
+S'Shops'
 p16
-aS'Trees to sit under'
+aS'Offices'
 p17
-aS'Delicate flowers'
+aS'Factories'
 p18
 atp19
-a(S'Gardens'
+a(S'Religious buildings'
 p20
 (lp21
-S'Grass for domestic animals'
+S'Churches'
 p22
-aS'Small trees'
+aS'Mosques'
 p23
-aS'Exotic flowers'
+aS'Synagogues'
 p24
 atp25
 atp26
-a(S'Buildings'
+a(S'Roads'
 p27
 (lp28
-(S'Houses'
+(S'Roads for cars'
 p29
 (lp30
-S'Flats'
+S'Highways'
 p31
-aS'Bungalows'
+aS'Main roads'
 p32
-aS'Campers'
+aS'Streets'
 p33
 atp34
-a(S'Business estate'
+a(S'Roads for bikes'
 p35
 (lp36
-S'Shops'
+S'Smooth bike roads'
 p37
-aS'Offices'
+aS'Bumpy bike roads'
 p38
-aS'Factories'
+aS'Muddy trails'
 p39
 atp40
-a(S'Religious buildings'
+a(S'Roads for pedestrians'
 p41
 (lp42
-S'Churches'
+S'Sidewalks'
 p43
-aS'Mosques'
+aS'Promenades'
 p44
-aS'Synagogues'
+aS'Stairs'
 p45
 atp46
 atp47
-a(S'Roads'
+a(S'Nature'
 p48
 (lp49
-(S'Roads for cars'
+(S'Public parks'
 p50
 (lp51
-S'Highways'
+S'Grass to play on'
 p52
-aS'Main roads'
+aS'Trees to climb in'
 p53
-aS'Streets'
+aS'Robust flowers'
 p54
 atp55
-a(S'Roads for bikes'
+a(S'Private parks'
 p56
 (lp57
-S'Smooth bike roads'
+S'Grass to look at'
 p58
-aS'Bumpy bike roads'
+aS'Trees to sit under'
 p59
-aS'Muddy trails'
+aS'Delicate flowers'
 p60
 atp61
-a(S'Roads for pedestrians'
+a(S'Gardens'
 p62
 (lp63
-S'Sidewalks'
+S'Grass for domestic animals'
 p64
-aS'Promenades'
+aS'Small trees'
 p65
-aS'Stairs'
+aS'Exotic flowers'
 p66
 atp67
 atp68

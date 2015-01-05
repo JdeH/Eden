@@ -10,7 +10,7 @@
 
 # hello.py
 
-from eden import *
+from org.qquick.eden import *
 
 MainView (
 	LabelView ('Hello, resize and restart me'),

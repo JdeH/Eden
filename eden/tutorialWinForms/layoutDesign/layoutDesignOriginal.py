@@ -10,7 +10,7 @@
 
 # layoutDesignOriginal.py
 
-from eden import *
+from org.qquick.eden import *
 
 application.designMode = True
 
