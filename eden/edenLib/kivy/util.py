@@ -240,7 +240,7 @@ def getList (valueOrList, resultIfNone = None):
 			return [valueOrList]
 		
 def getAsTarget (value, targetClass):
-	if value.__class__ == targetClass:
+	if value.__class__ == targetClass or value in (None, Pass):
 		return value
 	elif value.__class__ == str and targetClass in [tuple, list, dict, set, bool]:	# Note the bool case
 		return eval (value)

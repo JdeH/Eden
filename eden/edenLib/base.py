@@ -13,6 +13,9 @@ import os
 class Anything (object):
 	pass
 
+class Pass (Anything):
+	pass
+	
 class Application (Anything):
 	def setDebug (self, switch):
 		self.logNotifications = switch

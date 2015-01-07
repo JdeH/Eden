@@ -555,10 +555,11 @@ class SwitchView (ViewBase):
 			ViewBase.resizeFont (self, self.label)
 			
 class TextView (ViewBase):
-	def __init__ (self, valueNode = None, enabledNode = None, multiLine = False):
+	def __init__ (self, valueNode = None, enabledNode = None, multiLine = False, autoCommit = False):
 		ViewBase.__init__ (self, enabledNode)	
 		self.valueNode = getNode (valueNode)
 		self.multiLine = multiLine
+		self.autoCommit = autoCommit
 		
 	def bareCreateWidget (self):
 		self.widget = TextInput (multiline = self.multiLine)
@@ -568,6 +569,9 @@ class TextView (ViewBase):
 			self.valueLink.write ()
 			
 		self.widget.bind (on_text_validate = self.valueLink.read)
+		
+		if self.autoCommit:
+			self.widget.bind (text = self.valueLink.read)
 
 	def resizeFont (self):
 		ViewBase.resizeFont (self)
@@ -1098,7 +1102,6 @@ class ListView (ViewBase):
 		enabledNode = None,
 		transformer = None,
 		hintGetter = None,
-		multiSelectNode = None,
 		sortColumnNumberNode = None,
 		dragLabelGetter = None,
 		dragValueGetter = None,
@@ -1106,6 +1109,7 @@ class ListView (ViewBase):
 		dropValueGetter = None,
 		dragResultGetter = None,
 		dropResultGetter = None,
+		multiSelect = True,
 		key = None,
 		tweaker = None
 	):
@@ -1119,7 +1123,6 @@ class ListView (ViewBase):
 		self.otherActionNode = getNode (otherActionNode)
 		self.transformer = transformer
 		self.hintGetter = hintGetter = getFunction (hintGetter, lambda: None)
-		self.multiSelectNode = getNode (multiSelectNode, Node (False))
 		self.sortColumnNumberNode = getNode (sortColumnNumberNode, Node (0))
 		self.dragLabelGetter = getFunction (dragLabelGetter, self.defaultDragLabelGetter)
 		self.dragValueGetter = getFunction (dragValueGetter, self.defaultDragValueGetter)
@@ -1127,6 +1130,7 @@ class ListView (ViewBase):
 		self.dropLabelGetter = getFunction (dropLabelGetter, self.defaultDropLabelGetter)
 		self.dropValueGetter = getFunction (dropValueGetter, self.defaultDropValueGetter)
 		self.dropResultGetter = getFunction (dropResultGetter, self.defaultDropResultGetter)
+		self.multiSelect = multiSelect
 		self.key = key
 		self.tweaker = None
 		
@@ -1150,7 +1154,7 @@ class ListView (ViewBase):
 				} for index in range (len (self.headerNode.new))]
 			}
 			
-		self.listAdapter = ListAdapter (data = [], selection_mode = 'multiple', args_converter = rowBuilder, cls = CompositeListItem, sorted_keys = [])
+		self.listAdapter = ListAdapter (data = [], selection_mode = 'multiple' if self.multiSelect else 'single', args_converter = rowBuilder, cls = CompositeListItem, sorted_keys = [])
 		
 		self.widget = BoxLayout (orientation = 'vertical')
 		self.headerWidget = BoxLayout (height = 25, size_hint_y = None)

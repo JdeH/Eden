@@ -13,13 +13,15 @@ from .base import *
 from .util import *
 from .node import *
 
+defaultNodeStoreName = 'nodes.store'
+
 class Store:
-	def __init__ (self):
+	def __init__ (self, fileName = defaultNodeStoreName):
 		self.storeDictionary = {}
 		self.keyList = []
 		self.autoKey = UniqueNumber ()
 		self.afterLoadActionNode = Node (None)
-		self.fileName = 'nodes.store'
+		self.fileName = fileName
 		
 	def name (self, fileName):
 		self.fileName = fileName
@@ -65,6 +67,8 @@ class Store:
 			self.loaded = False
 
 		self.setStoreFromList (storeList, 'file ' + self.fileName, silent = silent)
+		
+		return self
 				
 	def save (self, fileName = None):
 		if fileName:

@@ -1,0 +1,21 @@
+(lp1
+(S'main.contentNode'
+p2
+c__builtin__
+bytearray
+p3
+(VMaking views depend on eachother is really simple with nodes, even if dependencies are cyclic.\u000aThere's no error handling in this example, but feel free to expand it.
+S'latin-1'
+tRp4
+tp5
+a(S'loadFileDialog.fileNameNode'
+p6
+S'..'
+p7
+tp8
+a(S'saveFileDialog.fileNameNode'
+p9
+S'hexPane.pyc'
+p10
+tp11
+a.

@@ -127,7 +127,7 @@ Tutorial programs are in the tutorialWinForms directory
 Using CPython + Kivy
 ----------------------
 
-Some preliminary examples are in the preliminaryTutorialKivy directory
+Tutorial programs are in the tutorialKivy directory
 
 
 Compatibility

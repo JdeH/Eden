@@ -172,11 +172,12 @@ class Node (object):							# Node representing atomary partial state in a state 
 				sinkNode.printTrace ('Propagate, blocked', 'currentValue')					
 									
 	def act (self):						# Called at the end of transaction, to ensure updated values, e.g. on entering an event loop
-		if hasattr (self, 'action'):	# "Old style" single action functionality kept for backward compatibility
-			self.action ()
-			
-		for action in self.actions:		# Perform all "new style" chainable actions associated with this node
-			action ()
+		if not self.new == Pass:
+			if hasattr (self, 'action'):	# "Old style" single action functionality kept for backward compatibility
+				self.action ()
+				
+			for action in self.actions:		# Perform all "new style" chainable actions associated with this node
+				action ()
 			
 	new = property (evaluate)													# Reading property yields value of node after current event
 

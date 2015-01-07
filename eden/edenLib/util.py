@@ -16,3 +16,6 @@ if 'WinForms' in application.platform:
 			
 elif 'Kivy' in application.platform:
 	from .kivy.util import *
+	
+def decapitalize (aString):
+	return aString [:1] .lower () + aString [1:] if aString else ''

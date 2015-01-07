@@ -1,10 +1,22 @@
 from .node import *
+from .util import *
+from .store import *
 
 class Module:
-	def __init__ (self, moduleKey = '', defineParts = False):
+	topLevel = True
+
+	def __init__ (self, moduleName = None, nodeStoreName = defaultNodeStoreName):
+		self.topLevel = Module.topLevel
+		Module.topLevel = False
+		
 		self.modules = []
-		self.moduleKey = moduleKey
-		if defineParts:
+		self.moduleName = moduleName if moduleName else decapitalize (self.__class__.__name__)
+		setattr (app, self.moduleName, self)
+				
+		if self.topLevel:
+			if nodeStoreName:
+				app.nodeStore = Store (nodeStoreName)
+				
 			self.defineParts ()
 
 	def addModule (self, module):
@@ -44,11 +56,16 @@ class Module:
 			if nodeKey == '':
 				nodeKey = name
 				
-			if self.moduleKey == '':
-				qualifiedKey = nodeKey
-			else:
-				qualifiedKey = self.moduleKey + '.' + nodeKey
-				
-			store.add (node, qualifiedKey)
+			store.add (node, self.moduleName + '.' + nodeKey)
 			
 		return node
+		
+	def execute (self,):
+		if self.topLevel:
+			if hasattr (app, 'nodeStore'):
+				app.nodeStore.load ()
+							
+			self.getView () .execute ()
+			
+			if hasattr (app, 'nodeStore'):
+				app.nodeStore.save ()
