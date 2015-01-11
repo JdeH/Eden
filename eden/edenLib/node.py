@@ -16,6 +16,8 @@ from .util import *
 currentEvent = UniqueNumber (1)
 triggerNode = CallableValue ()
 
+recursionMessage = 'recursive node evaluation'
+
 class Transactor:
 	def __init__ (self):
 		self.clear ()
@@ -65,13 +67,11 @@ class Node (object):							# Node representing atomary partial state in a state 
 	def trace (self, traceName):
 		self.traceName = traceName
 		return self
-	
-	def traceNameIs (traceName):
-		return hasattr (self, 'traceName') and self.traceName == traceName
 		
-	def printTrace (self, label, attribute):
-		if hasattr (self, 'traceName') and hasattr (self, attribute):
-			print label + ',', self.traceName + '.' + attribute, '==', getattr (self, attribute)
+	def printTrace (self, message, newLine = False):
+		if hasattr (self, 'traceName'):
+			splitName = self.traceName.split ('.')
+			print '{0}<TRACE> {1:<20}{2:>20}: {3}'.format ('\n' if newLine else '', splitName [0], splitName [1], message)
 
 	def dependsOn (self, sourceNodes, getter = lambda: None):		# Lay dependency relations this node and other nodes that it depends on
 		if hasattr (self, 'sourceNodes'):				# If dependsOn was called before for this node
@@ -127,14 +127,10 @@ class Node (object):							# Node representing atomary partial state in a state 
 			raise Error ('Node value invalid')
 
 	def evaluate (self):							# Evaluation phase, two way propagation
-		self.printTrace ('Evaluate, start', 'event')
-
 		if self.event == 0:	# So only nodes that lay on the trigger path are REALLY ever computed!
 			if self.evaluating:
-				print 'Event: ', self.event
-				print 'Previous value: ', self.previousValue
-				print 'Current value: ', self.currentValue
-				raise FatalError ('Recursive node evaluation')
+				self.printTrace ('Value before evaluation is {0}, {1}'.format (self.currentValue, recursionMessage.upper ()))
+				raise FatalError (capitalize (recursionMessage))
 			else:
 				self.evaluating = True
 				try:
@@ -143,25 +139,25 @@ class Node (object):							# Node representing atomary partial state in a state 
 #							self.previousValue = self.currentValue	#			Remember previousValue early to enable rollBack if getter raises exception
 #							transactor.add (self)					#			Register that this node may alter its value as part of the current transaction
 						
-						self.printTrace ('Evaluate, before getter', 'currentValue')
+						self.printTrace ('Value before evaluation is {0}'.format (self.currentValue))
 						self.currentValue = self.getter ()		#			Compute currentValue, backpropagate if needed to evaluate getter
-						self.printTrace ('Evaluate, after getter', 'currentValue')
+						self.printTrace ('Value after evaluation is {0}'.format (self.currentValue))
 					else:										#		If not yet initialized
+						self.printTrace ('Value before evaluation is not yet initialized')
 						self.currentValue = self.getter ()		#			Dependent initialisation. backpropagate if needed to evaluate getter
+						self.printTrace ('Value after evaluation is {0}'.format (self.currentValue))
 						self.previousValue = self.currentValue	#			Make sure previousValue is available in case of dependent initialisation
 						
 					self.event = currentEvent ()				#		Certainly currentValue is up to date at this point
 					self.propagate ()							#		Forward propagation
 				finally:											# Even if getter raises an exception
 					self.evaluating = False							#	Re-enable evaluation
-				
-		self.printTrace ('Evaluate, end', 'event')
 		return self.currentValue						# Return possible updated currentValue
 			
 	def propagate (self):						# Forward propagation
 		self.validate ()							#	Correct mistakes early, get report on changed node, rather than dependent one
 		
-		self.printTrace ('Writing to {0} links'.format (len (self.links)), 'event')
+		self.printTrace ('Writing to {0} links'.format (len (self.links)))
 		for link in self.links:						#	For each GUI element associated with this node
 			link.write ()							#		Update that GUI element
 		
@@ -169,7 +165,7 @@ class Node (object):							# Node representing atomary partial state in a state 
 			if not sinkNode.evaluating:				#		Unless sinkNode is already under evaluation
 				sinkNode.evaluate ()				#			Make sure it evaluates, since no other node may ask it to
 			else:
-				sinkNode.printTrace ('Propagate, blocked', 'currentValue')					
+				sinkNode.printTrace ('Propagate, blocked')					
 									
 	def act (self):						# Called at the end of transaction, to ensure updated values, e.g. on entering an event loop
 		if not self.new == Pass:
@@ -206,15 +202,12 @@ class Node (object):							# Node representing atomary partial state in a state 
 			if retrigger or convertedValue != self.currentValue:					# If retrigger or value changed
 				triggerNode.value = self											#	Remember that this node started the propagation
 				self.invalidate ()													#	Invalidate this node and dependent nodes
-				
-				self.printTrace ('Change, before assignment', 'currentValue')
-				self.currentValue = convertedValue									#	Store new, converted value in this node
-				self.printTrace ('Change, after assignment', 'currentValue')
-			
 				self.event = currentEvent.getNext	()								#	Make this node valid
+
+				self.printTrace ('Event {0}, change from {1} to {2}'.format (self.event, self.currentValue, convertedValue), True)
 				
+				self.currentValue = convertedValue									#	Store new, converted value in this node
 				self.propagate ()													#	Propagate new value to dependent nodes
-				
 				transactor.act ()													#	Late, since actions may need node values and may even enter event loops
 			
 		except Refusal as refusal:
@@ -234,9 +227,9 @@ class Node (object):							# Node representing atomary partial state in a state 
 		
 		if retrigger or convertedValue != self.currentValue:			
 			self.invalidate ()
-			self.printTrace ('Follow, before assignment', 'currentValue')
+			
+			self.printTrace ('Follow from {0} to {1}'.format (self.currentValue, convertedValue))
 			self.currentValue = convertedValue									#	Store new, converted value in this node
-			self.printTrace ('Follow, after assignment', 'currentValue')
 			self.event = currentEvent ()										#	Make this node valid
 			self.propagate ()													#	Propagate new value to dependent nodes
 			
@@ -283,7 +276,7 @@ class Link:	# Link between a node and a particular bareRead / bareWrite pair of 
 				
 				try:								#		If the widget is already instantiated
 					self.bareWrite ()				#			Low level write to widget
-				except AttributeError:				#		If widget is not yet instantiated (while passing parameters to execute)
+				except AttributeError as e:				#		If widget is not yet instantiated (while passing parameters to execute)
 					pass							#			Do nothing
 				except TypeError:					#		If widget is not yet instantiated (while passing parameters to execute)
 					pass							#			Do nothing

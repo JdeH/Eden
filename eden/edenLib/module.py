@@ -8,6 +8,8 @@ class Module:
 	def __init__ (self, moduleName = None, nodeStoreName = defaultNodeStoreName):
 		self.topLevel = Module.topLevel
 		Module.topLevel = False
+
+		self.trace = False
 		
 		self.modules = []
 		self.moduleName = moduleName if moduleName else decapitalize (self.__class__.__name__)
@@ -51,6 +53,9 @@ class Module:
 		
 	def addNode (self, node, name, store = None, nodeKey = ''):
 		setattr (self, name, node)
+						
+		if self.trace:
+			getattr (self, name) .trace ('{0}.{1}'.format (self.moduleName, name))
 						
 		if not store is None:
 			if nodeKey == '':

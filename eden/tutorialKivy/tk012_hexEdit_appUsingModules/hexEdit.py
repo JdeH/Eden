@@ -12,6 +12,8 @@
 
 from org.qquick.eden import *
 
+app.debug = True
+
 from fileDialog import *
 from aboutDialog import *
 from asciiPane import *
@@ -46,7 +48,7 @@ class Main (Module):
 		self.addModule (AsciiPane ())
 		
 	def defineNodes (self):
-		self.addNode (Node (None), 'openFileMenuNode')	# Accessible as self.fileNode
+		self.addNode (Node (None), 'openFileMenuNode')	# Accessible as self.openFileMenuNode, and available for module level tracing, see module FileDialog for example of this.
 		self.addNode (Node (None), 'closeFileMenuNode')
 		
 		self.addNode (Node (None), 'openHelpMenuNode')

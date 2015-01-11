@@ -435,6 +435,39 @@ def listFromFlow (flow, fieldTypes, appendIdColumn = False):
 
 	return rows
 	
+def defaultSelectedList (listNode, selectedListNode, multiSelect = True):	# Order n rather than n**2  !!! Tidyup!!!
+	if app.initializing:
+		if self.multiSelect or not self.listNode.new:
+			return []
+		else:
+			return listNode.new [0]
+		
+	indexNew = len (listNode.new) - 1
+	growth = indexNew - (len (listNode.old) - 1)
+	
+	if growth == 0:														# If same size
+		if sorted (listNode.new) == sorted (listNode.old):		# If contain same elements
+			return selectedListNode.old
+		else:															# Both insertion and removal have taken place, no sensible selection possible
+			return []
+	else:
+	
+		# Look for a difference between the lists, that have unequal length
+
+		try:
+			while listNode.new [indexNew] == listNode.old [indexNew - growth]:
+				indexNew -= 1				
+		except IndexError:
+			pass	
+
+		# When here, a difference has been found, including exhaustion of exactly one of both lists
+	
+		if indexNew == -1:									# If index points at fictional sentry at index -1
+			return []										#	Don't return sentry, since it is fictional...
+		else:												# If index points at a real item
+			return [listNode.new [indexNew]]			#	Inserted item or item just above the ones deleted
+
+	
 # --- Tree manipulation
 
 def tupleFromBranch (branch):

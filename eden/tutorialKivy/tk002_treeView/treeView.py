@@ -24,14 +24,23 @@ treeNode = Node ([
 	])
 ])
 
+textNode = Node ('hello')
+textNode.trace ('textNode1')
+
+text2Node = Node ('goodbye')
+
+resultNode = Node () .dependsOn ([textNode, text2Node], lambda: textNode.new + ' ' + text2Node.new)
+
 selectedPathNode = Node ([])
 
 selectedTreeNode = Node ()
 selectedTreeNode.dependsOn ([selectedPathNode, treeNode], lambda: cloneTree (treeNode.new, selectedPathNode.new))
 
 MainView (VGridView ([
-	TreeView (rootNode = 'Whole tree', treeNode = treeNode, selectedPathNode = selectedPathNode), 7,
+	TreeView (rootNode = resultNode, treeNode = treeNode, selectedPathNode = selectedPathNode), 7,
 	LabelView ('Try editing the nodes in the textview below.'),
 	TextView (treeNode, multiLine = True), 
-	TreeView (rootNode = 'Selected branch', treeNode = selectedTreeNode), 7
+	TreeView (rootNode = 'Selected branch', treeNode = selectedTreeNode), 7,
+	TextView (textNode, multiLine = False),
+	TextView (text2Node, multiLine = False)
 ]), selectedTreeNode) .execute ()

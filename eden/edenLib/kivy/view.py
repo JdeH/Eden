@@ -97,7 +97,7 @@ application.dragFixTime = 1
 application.dragResetTime = 6
 
 application.pointedListItemSettleTime = 0.3
-application.listSelectionJitterTime = 0.3
+application.listSelectionRepeatTime = 0.3
 
 def xDistance (position0, position1):
 	return abs (position1 [0] - position0 [0])
@@ -1020,24 +1020,31 @@ class ListItemWidget (ListItemButton):
 
 		application.mainView.resizeFontOfTarget (self)
 		
-		def touchDown (*args):	# Block deselection in case of double or triple tap or click
+		def touchDown (*args):					
 			if self.collide_point (*self.to_parent (*self.to_widget (*application.pointerPosition))):
 				touchDownTime = args [1] .time_start
-				result = self.is_selected and touchDownTime - self.listView.touchDownTime < application.listSelectionJitterTime
+				isRepeat = touchDownTime - self.listView.touchDownTime < application.listSelectionRepeatTime # Block deselection in case of double or triple tap or click
 				self.listView.touchDownTime = touchDownTime
-				return result
+				
+				if self.listView.multiSelect:
+					if self.listView.listNode.new [self.index] in self.listView.selectedListNode.new and not isRepeat:
+						selectedList = self.listView.selectedlistNode.new
+						selectedList.remove (self.listView.listNode.new [index])
+					else:
+						selectedList = []
+						for index, item in enumerate (self.listView.listNode.new):	# ... O (n^2), can be improved
+							if item in self.listView.selectedListNode.new or index == self.rowIndex:
+								selectedList.append (item)
+				
+				else:
+					selectedList = [self.listView.listNode.new [self.rowIndex]]
+					
+				self.listView.selectedListNode.change (selectedList)
+				self.listView.scheduleReadPointedList (self.rowIndex)
+				
+				return True
 		
 		self.bind (on_touch_down = touchDown)
-			
-		def onSelect (*args):
-			if self.is_selected:
-				self.listView.listAdapter.get_view (self.rowIndex) .select_from_child (self)
-			else:
-				self.listView.listAdapter.get_view (self.rowIndex) .deselect_from_child (self)
-			self.listView.selectedListLink.read (self.rowIndex)
-			self.listView.scheduleReadPointedList (self.rowIndex)
-				
-		self.bind (is_selected = onSelect)
 				
 		def touchMove (*args):
 			if	(
@@ -1052,9 +1059,6 @@ class ListItemWidget (ListItemButton):
 	def onSize (self, *args):	# Member, since it is also called by ListView.adaptItemSizes, initiated by a head resize
 		self.width = self.listView.listHeadWidgets [self.fieldIndex] .getGrossWidth ()
 		self.text_size = (self.width, None)
-
-	def isSelected (self):	# ... Ugly hack, since is_selected doesn't do the job in Kivy 1.8
-		return self.background_color == self.selected_color
 		
 	def select (self, *args):
 		if not application.dragObject.dragging:
@@ -1210,20 +1214,7 @@ class ListView (ViewBase):
 		self.listLink.write ()
 		
 		if not hasattr (self.selectedListNode, 'getter'):
-			self.selectedListNode.dependsOn ([self.listNode], self.interestingItemList)
-			
-		def bareReadSelectedList (params):
-			if application.dragObject.dragging:
-				self.selectedListLink.write ()
-			else:
-				if not self.listLink.writing:
-					selectedList = []
-					for itemIndex, item in enumerate (self.listNode.new):
-						for fieldWidget in self.listAdapter.get_view (itemIndex) .children:
-							if fieldWidget.isSelected ():
-								selectedList.append (item [:] if item.__class__ == list else item)	# Item isn't always a list, can also be a single field!
-								break	# Add only once, if any view of a row is selected
-					self.selectedListNode.change (selectedList)
+			self.selectedListNode.dependsOn ([self.listNode], defaultSelectedList (self.listNode, self.selectedListNode, self.multiSelect))
 				
 		def bareWriteSelectedList ():
 			for itemIndex, item in enumerate (self.listNode.new):
@@ -1232,8 +1223,8 @@ class ListView (ViewBase):
 				else:
 					self.listAdapter.get_view (itemIndex) .deselect_from_child (None)
 			
-		self.selectedListLink = Link (self.listNode, bareReadSelectedList, bareWriteSelectedList)
-		self.selectedListLink.writeBack = False
+		self.selectedListLink = Link (self.selectedListNode, None, bareWriteSelectedList)
+		self.selectedListLink.write ()
 		
 		def bareReadPointedList (params):
 			self.pointedListNode.change ([self.listNode.new [ListView.pointedItemIndex]] if ListView.pointedItemIndex != None else [])
@@ -1264,7 +1255,6 @@ class ListView (ViewBase):
 		self.sortColumnNumberLink = Link (self.sortColumnNumberNode, bareReadSortColumnNumber, None)
 		
 		self.createDragDropLinks (self.listNode)
-
 
 	def scheduleReadPointedList (self, pointedItemIndex):	
 		Clock.unschedule (ListView.readPointedList)	# No problem if nothing to unschedule
@@ -1350,35 +1340,6 @@ class ListView (ViewBase):
 		for itemIndex in range (len (self.listNode.new)):
 			fieldWidget = self.listAdapter.get_view (itemIndex) .children [-(fieldIndex + 1)]
 			fieldWidget.onSize ()		
-
-	def interestingItemList (self):							# Order n rather than n**2  !!! Tidyup!!!
-		if application.initializing:
-			return []
-			
-		indexNew = len (self.listNode.new) - 1
-		growth = indexNew - (len (self.listNode.old) - 1)
-		
-		if growth == 0:														# If same size
-			if sorted (self.listNode.new) == sorted (self.listNode.old):		# If contain same elements
-				return self.selectedListNode.old
-			else:															# Both insertion and removal have taken place, no sensible selection possible
-				return []
-		else:
-		
-			# Look for a difference between the lists, that have unequal length
-
-			try:
-				while self.listNode.new [indexNew] == self.listNode.old [indexNew - growth]:
-					indexNew -= 1				
-			except IndexError:
-				pass	
-
-			# When here, a difference has been found, including exhaustion of exactly one of both lists
-		
-			if indexNew == -1:									# If index points at fictional sentry at index -1
-				return []										#	Don't return sentry, since it is fictional...
-			else:												# If index points at a real item
-				return [self.listNode.new [indexNew]]			#	Inserted item or item just above the ones deleted
 			
 class SpanLayout (RelativeLayout):
 	def __init__ (self):
