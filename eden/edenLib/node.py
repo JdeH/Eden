@@ -71,7 +71,10 @@ class Node (object):							# Node representing atomary partial state in a state 
 	def printTrace (self, message, newLine = False):
 		if hasattr (self, 'traceName'):
 			splitName = self.traceName.split ('.')
-			print '{0}<TRACE> {1:<20}{2:>20}: {3}'.format ('\n' if newLine else '', splitName [0], splitName [1], message)
+			if len (splitName) == 2:
+				print '{0}<TRACE> {1:<20}{2:>20}: {3}'.format ('\n' if newLine else '', splitName [0], splitName [1], message)
+			else:
+				print '{0}<TRACE> {1:>20}: {2}'.format ('\n' if newLine else '', splitName [0], message)
 
 	def dependsOn (self, sourceNodes, getter = lambda: None):		# Lay dependency relations this node and other nodes that it depends on
 		if hasattr (self, 'sourceNodes'):				# If dependsOn was called before for this node

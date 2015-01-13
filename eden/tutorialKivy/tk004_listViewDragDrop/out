@@ -1,0 +1,91 @@
+GLEW initialization succeeded
+
+93894216 ListItemWidget.__init__ before ViewWidget.__init__
+93894216 ViewWidget.__init__  before ViewBase.__init__
+93894216 ViewWidget.__init__  after ViewBase.__init__ before createWidget
+93894216 ViewBase.createWidget before bareCreateWidget
+93894216 ViewWidget.bareCreateWidget before assigning to widget
+93894216 <class 'org.qquick.eden.edenLib.kivy.view.ListItemWidget'> ====== OK
+93894216 ViewBase.createWidget after bareCreateWidget
+93894216 ViewWidget.__init__  after ViewBase.createWidget
+93894216 ListItemWidget.__init__ after ViewWidget.__init__
+
+
+93894216 ListItemWidget.__init__ before ListItemButton.__init__
+93894216 ListItemWidget.__init__ after ListItemButton.__init__
+
+
+93894312 ListItemWidget.__init__ before ViewWidget.__init__
+93894312 ViewWidget.__init__  before ViewBase.__init__
+93894312 ViewWidget.__init__  after ViewBase.__init__ before createWidget
+93894312 ViewBase.createWidget before bareCreateWidget
+93894312 ViewWidget.bareCreateWidget before assigning to widget
+93894312 <class 'org.qquick.eden.edenLib.kivy.view.ListItemWidget'> ====== OK
+93894312 ViewBase.createWidget after bareCreateWidget
+93894312 ViewWidget.__init__  after ViewBase.createWidget
+93894312 ListItemWidget.__init__ after ViewWidget.__init__
+
+
+93894312 ListItemWidget.__init__ before ListItemButton.__init__
+93894312 ListItemWidget.__init__ after ListItemButton.__init__
+
+
+93894408 ListItemWidget.__init__ before ViewWidget.__init__
+93894408 ViewWidget.__init__  before ViewBase.__init__
+93894408 ViewWidget.__init__  after ViewBase.__init__ before createWidget
+93894408 ViewBase.createWidget before bareCreateWidget
+93894408 ViewWidget.bareCreateWidget before assigning to widget
+93894408 <class 'org.qquick.eden.edenLib.kivy.view.ListItemWidget'> ====== OK
+93894408 ViewBase.createWidget after bareCreateWidget
+93894408 ViewWidget.__init__  after ViewBase.createWidget
+93894408 ListItemWidget.__init__ after ViewWidget.__init__
+
+
+93894408 ListItemWidget.__init__ before ListItemButton.__init__
+93894408 ListItemWidget.__init__ after ListItemButton.__init__
+
+
+95121768 ListItemWidget.__init__ before ViewWidget.__init__
+95121768 ViewWidget.__init__  before ViewBase.__init__
+95121768 ViewWidget.__init__  after ViewBase.__init__ before createWidget
+95121768 ViewBase.createWidget before bareCreateWidget
+95121768 ViewWidget.bareCreateWidget before assigning to widget
+95121768 <class 'org.qquick.eden.edenLib.kivy.view.ListItemWidget'> ====== OK
+95121768 ViewBase.createWidget after bareCreateWidget
+95121768 ViewWidget.__init__  after ViewBase.createWidget
+95121768 ListItemWidget.__init__ after ViewWidget.__init__
+
+
+95121768 ListItemWidget.__init__ before ListItemButton.__init__
+95121768 ListItemWidget.__init__ after ListItemButton.__init__
+
+
+95121864 ListItemWidget.__init__ before ViewWidget.__init__
+95121864 ViewWidget.__init__  before ViewBase.__init__
+95121864 ViewWidget.__init__  after ViewBase.__init__ before createWidget
+95121864 ViewBase.createWidget before bareCreateWidget
+95121864 ViewWidget.bareCreateWidget before assigning to widget
+95121864 <class 'org.qquick.eden.edenLib.kivy.view.ListItemWidget'> ====== OK
+95121864 ViewBase.createWidget after bareCreateWidget
+95121864 ViewWidget.__init__  after ViewBase.createWidget
+95121864 ListItemWidget.__init__ after ViewWidget.__init__
+
+
+95121864 ListItemWidget.__init__ before ListItemButton.__init__
+95121864 ListItemWidget.__init__ after ListItemButton.__init__
+
+
+95121960 ListItemWidget.__init__ before ViewWidget.__init__
+95121960 ViewWidget.__init__  before ViewBase.__init__
+95121960 ViewWidget.__init__  after ViewBase.__init__ before createWidget
+95121960 ViewBase.createWidget before bareCreateWidget
+95121960 ViewWidget.bareCreateWidget before assigning to widget
+95121960 <class 'org.qquick.eden.edenLib.kivy.view.ListItemWidget'> ====== OK
+95121960 ViewBase.createWidget after bareCreateWidget
+95121960 ViewWidget.__init__  after ViewBase.createWidget
+95121960 ListItemWidget.__init__ after ViewWidget.__init__
+
+
+95121960 ListItemWidget.__init__ before ListItemButton.__init__
+95121960 ListItemWidget.__init__ after ListItemButton.__init__
+

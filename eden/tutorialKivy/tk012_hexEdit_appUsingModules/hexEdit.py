@@ -43,8 +43,8 @@ class Main (Module):
 	def defineModules (self):	# Modules are defined hierarchically, but are all made accessible flat as members of the global app object provided by Eden.
 		self.addModule (FileDialog (moduleName = 'loadFileDialog', save = False))
 		self.addModule (FileDialog (moduleName = 'saveFileDialog', save = True))
-		self.addModule (AboutDialog ())
-		self.addModule (HexPane ())	# Module name defaults to 'hexPane'
+		self.addModule (AboutDialog ())	# Module name defaults to 'aboutDialog'
+		self.addModule (HexPane ())
 		self.addModule (AsciiPane ())
 		
 	def defineNodes (self):

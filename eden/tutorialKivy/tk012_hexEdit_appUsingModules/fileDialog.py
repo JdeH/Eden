@@ -14,11 +14,11 @@ import os
 
 from org.qquick.eden import *
 
-# This example shows some important strategies to manage cyclic dependecies between nodes.
+# This module demonstrates some important strategies to manage cyclic dependencies between nodes.
 
 class FileDialog (Module):
 # In a real world app maybe this module would just encapsulate a 3rd party file dialog.
-# But with nodes and views it takes only little code to roll your own.
+# But with nodes and views it doesn't take to much code to roll your own.
 # Click on directories and files and see the button and label captions change.
 
 	def __init__ (self, moduleName, save):

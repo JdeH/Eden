@@ -15,7 +15,7 @@ p7
 tp8
 a(S'loadFileDialog.fileNameNode'
 p9
-S'fileDialog.py'
+S'aboutDialog.py'
 p10
 tp11
 a(S'saveFileDialog.directoryNode'
