@@ -12,17 +12,17 @@ import os
 
 class Anything (object):
 	pass
-
+	
 class Pass (Anything):
 	pass
 	
-class Application (Anything):
+class Application (Anything):	
 	def setDebug (self, switch):
 		self.logNotifications = switch
 		self.setDebugExtra (switch)
-			
+		
 	debug = property (None, setDebug)
-	
+		
 application = Application ()
 app = application
 

@@ -10,6 +10,9 @@
 
 from .base import *
 from .util import *
+import inspect
+
+edenPathMarker = '/org/qquick/'
 
 if 'WinForms' in application.platform:
 	from .winForms.util import *
@@ -19,3 +22,13 @@ elif 'Kivy' in application.platform:
 	
 def decapitalize (aString):
 	return aString [:1] .lower () + aString [1:] if aString else ''
+	
+def getCaller ():
+	callerFrame = inspect.stack () [2]
+	fileName = edenPathMarker [1:] + callerFrame [1] .replace ('\\', ('/')) .split (edenPathMarker) [1]
+	lineNr = callerFrame [2]
+	functionName = callerFrame [3]
+	return (fileName, lineNr, functionName)
+	
+	
+

@@ -5,212 +5,233 @@ p2
 (S'City'
 p4
 (lp5
-(S'Buildings'
+(S'Big subjects'
 p6
 (lp7
-(S'Houses'
+(S'Noisy'
 p8
 (lp9
-S'Flats'
+S'Jet'
 p10
-aS'Bungalows'
+aS'Steel mill'
 p11
-aS'Campers'
+aS'Freight train'
 p12
 atp13
-a(S'Business estate'
+a(S'Audible'
 p14
 (lp15
-S'Shops'
+S'Elephant'
 p16
-aS'Offices'
+aS'Truck'
 p17
-aS'Factories'
+aS'Whale'
 p18
 atp19
-a(S'Religious buildings'
+a(S'Silent'
 p20
 (lp21
-S'Churches'
+S'Mountain'
 p22
-aS'Mosques'
+aS'Tree'
 p23
-aS'Synagogues'
+aS'Cloud'
 p24
 atp25
 atp26
-a(S'Roads'
-p27
-(lp28
-(S'Roads for cars'
+atp27
+atp28
+a(S'bottomTree'
 p29
 (lp30
-S'Highways'
-p31
-aS'Main roads'
-p32
-aS'Streets'
-p33
-atp34
-a(S'Roads for bikes'
-p35
+(g6
+(lp31
+(g8
+(lp32
+g10
+ag11
+ag12
+atp33
+a(g14
+(lp34
+g16
+ag17
+ag18
+atp35
+a(g20
 (lp36
-S'Smooth bike roads'
-p37
-aS'Bumpy bike roads'
-p38
-aS'Muddy trails'
+g22
+ag23
+ag24
+atp37
+atp38
+a(S'Buildings'
 p39
-atp40
-a(S'Roads for pedestrians'
+(lp40
+(S'Roads'
 p41
 (lp42
-S'Sidewalks'
+(S'Roads for cars'
 p43
-aS'Promenades'
-p44
-aS'Stairs'
+(lp44
+S'Highways'
 p45
-atp46
-atp47
-a(S'Nature'
-p48
-(lp49
-(S'Public parks'
-p50
-(lp51
-S'Grass to play on'
+aS'Main roads'
+p46
+aS'Streets'
+p47
+atp48
+a(S'Roads for bikes'
+p49
+(lp50
+S'Smooth bike roads'
+p51
+aS'Bumpy bike roads'
 p52
-aS'Trees to climb in'
+aS'Muddy trails'
 p53
-aS'Robust flowers'
-p54
-atp55
-a(S'Private parks'
-p56
-(lp57
-S'Grass to look at'
+atp54
+a(S'Roads for pedestrians'
+p55
+(lp56
+S'Sidewalks'
+p57
+aS'Promenades'
 p58
-aS'Trees to sit under'
+aS'Stairs'
 p59
-aS'Delicate flowers'
-p60
+atp60
 atp61
-a(S'Gardens'
+a(S'Houses'
 p62
 (lp63
-S'Grass for domestic animals'
+S'Flats'
 p64
-aS'Small trees'
+aS'Bungalows'
 p65
-aS'Exotic flowers'
+aS'Campers'
 p66
 atp67
-atp68
-atp69
-atp70
-a(S'bottomTree'
+a(S'Business estate'
+p68
+(lp69
+S'Shops'
+p70
+aS'Offices'
 p71
-(lp72
-(S'Subjects'
-p73
-(lp74
-(S'Big subjects'
-p75
-(lp76
-(S'Noisy'
+aS'Factories'
+p72
+atp73
+a(S'Religious buildings'
+p74
+(lp75
+S'Churches'
+p76
+aS'Mosques'
 p77
-(lp78
-S'Jet'
-p79
-aS'Steel mill'
-p80
-aS'Freight train'
+aS'Synagogues'
+p78
+atp79
+atp80
+a(S'Nature'
 p81
-atp82
-a(S'Audible'
+(lp82
+(S'Public parks'
 p83
 (lp84
-S'Elephant'
+S'Grass to play on'
 p85
-aS'Truck'
+aS'Trees to climb in'
 p86
-aS'Whale'
+aS'Robust flowers'
 p87
 atp88
-a(S'Silent'
+a(S'Private parks'
 p89
 (lp90
-S'Mountain'
+S'Grass to look at'
 p91
-aS'Tree'
+aS'Trees to sit under'
 p92
-aS'Cloud'
+aS'Delicate flowers'
 p93
 atp94
-atp95
-a(S'Not so big subjects'
-p96
-(lp97
-(g77
-(lp98
-S'Motor bike'
+a(S'Gardens'
+p95
+(lp96
+S'Grass for domestic animals'
+p97
+aS'Small trees'
+p98
+aS'Exotic flowers'
 p99
-aS'Chain saw'
-p100
-aS'PA system'
-p101
-atp102
-a(g83
+atp100
+atp101
+a(S'Subjects'
+p102
 (lp103
-S'Human being'
+(S'Not so big subjects'
 p104
-aS'Cat'
-p105
-aS'Dish washer'
-p106
-atp107
-a(g89
-(lp108
-S'Lamp post'
+(lp105
+(g8
+(lp106
+S'Motor bike'
+p107
+aS'Chain saw'
+p108
+aS'PA system'
 p109
-aS'Brick'
-p110
-aS'Plant'
-p111
-atp112
-atp113
-a(S'Rather small subjects'
+atp110
+a(g14
+(lp111
+S'Human being'
+p112
+aS'Cat'
+p113
+aS'Dish washer'
 p114
-(lp115
-(g77
+atp115
+a(g20
 (lp116
-S'Cricket'
+S'Lamp post'
 p117
-aS'Wasp'
+aS'Brick'
 p118
-aS'Whistle'
+aS'Plant'
 p119
 atp120
-a(g83
-(lp121
-S'Mosquito'
+atp121
+a(S'Rather small subjects'
 p122
-aS'Mouse'
-p123
-aS'Music box'
-p124
-atp125
-a(g89
-(lp126
-S'Strawberry'
+(lp123
+(g8
+(lp124
+S'Cricket'
+p125
+aS'Wasp'
+p126
+aS'Whistle'
 p127
-aS'Glas of water'
-p128
-aS'Piece of cake'
-p129
-atp130
-atp131
-atp132
+atp128
+a(g14
+(lp129
+S'Mosquito'
+p130
+aS'Mouse'
+p131
+aS'Music box'
+p132
 atp133
+a(g20
+(lp134
+S'Strawberry'
+p135
+aS'Glas of water'
+p136
+aS'Piece of cake'
+p137
+atp138
+atp139
+atp140
+atp141
 a.

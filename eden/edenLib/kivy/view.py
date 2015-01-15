@@ -1,7 +1,7 @@
 # Copyright (C) 2005 - 2014 Jacques de Hooge, Geatec Engineering
 #
 # This program is free software.
-# You can use, redistribute and/or modify it, but only under the terms stated in the QQuickLicence.F
+# You can use, redistribute and/or modify it, but only under the terms stated in the QQuickLicence.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY, without even the implied warranty of
@@ -84,7 +84,7 @@ app.initializing = True
 app.focusedView = None
 
 app.pointerPosition = (-1, -1)
-app.oldPointerPosition = app.pointerPosition
+app.oldPointerPosition = app.pointerPosition	
 
 app.pointerIsDown = False
 app.pointerWasDown = app.pointerIsDown
@@ -107,6 +107,38 @@ app.dragResetTime = 6
 app.pointedListItemSettleTime = 0.3
 app.listSelectionInterval = 0.3
 
+app.rootViews = []
+
+def updatePointerPosition (self, pointerPosition):
+	self.oldPointerPosition = self.pointerPosition
+	self.pointerPosition = pointerPosition
+Application.updatePointerPosition = updatePointerPosition	
+
+def pushRootView (self, rootView):
+	self.rootViews.append (rootView)
+Application.pushRootView = pushRootView
+
+def popRootView (self):
+	self.rootViews.pop ()
+Application.popRootView = popRootView
+	
+def getHotView (self):
+	self.hotView = None
+	for widget in app.walkWidgets (self.rootViews [-1] .widget):
+		if hasattr (widget, 'edenView'):
+			if widget.edenView.getPointerIsInside ():
+				if widget.edenView.hotEnabled:
+					self.hotView = widget.edenView
+	return self.hotView
+Application.getHotView = getHotView
+
+def walkWidgets (self, widget):
+	yield widget
+	for childWidget in reversed (widget.children):
+		for aWidget in self.walkWidgets (childWidget):
+			yield aWidget
+Application.walkWidgets = walkWidgets
+
 def xDistance (position0, position1):
 	return abs (position1 [0] - position0 [0])
 	
@@ -114,15 +146,16 @@ def yDistance (position0, position1):
 	return abs (position1 [1] - position0 [1])
 
 def blockDistance (position0, position1):
-	return xDistance (position0, position1) + yDistance (position0, position1) 
-	
+	return xDistance (position0, position1) + yDistance (position0, position1)
+		
 class DragObject:
 	def __init__ (self):
 		self.reset ()
 		self.armedForDrag = True
 		self.armedForDrop = False
+		self.dropped = False
 	
-	def startDrag (self, dragView):
+	def drag (self, dragView):
 		self.dragging = True
 		self.armedForDrop = False
 		self.armedForDrag = False	# Will be set at touchUp
@@ -148,6 +181,12 @@ class DragObject:
 		Clock.unschedule (self.fixDrop)
 		Clock.schedule_once (self.fixDrop, app.dragFixTime)
 		
+	def drop (self, dropView):
+		app.dragObject.dropView = dropView
+		app.dragObject.dropView.dropLink.read ()	# Should be first, not only because of error handling
+		app.dragObject.dragView.dragLink.read ()	# Should be last
+		app.dragObject.reset ()	
+				
 	def move (self):
 		if self.dragging:
 			if blockDistance (self.dragPosition, app.pointerPosition) > app.dragFixDistance:
@@ -202,6 +241,7 @@ class ViewBase (object):
 		self.hadFocus = self.hasFocus
 		self.key = key
 		self.touchDownArgs = None
+		self.hotEnabled = True
 			
 	# Widget creation, enabling and event binding
 	
@@ -223,6 +263,7 @@ class ViewBase (object):
 			
 	def createWidget (self):
 		self.bareCreateWidget ()
+		self.widget.edenView = self
 		
 		app.mainView.widget.bind (on_resize_font = lambda *args: self.resizeFont ())
 		app.mainView.widget.bind (on_change_font_scale = lambda *args: self.resizeFont ())
@@ -233,73 +274,43 @@ class ViewBase (object):
 		if self.enabledNode:
 			self.enabledLink = Link (self.enabledNode, None, bareWriteEnabled)
 			self.enabledLink.write ()
-		
-		def getPointerIsInside ():
-			self.pointerIsInside = self.widget.collide_point (*self.widget.to_parent (*self.widget.to_widget (*app.pointerPosition)))
 			
-			if self.pointerIsInside != self.pointerWasInside:
-				if self.pointerIsInside:
-					self.pointerEnter ()
-				else:
-					self.pointerLeave ()
-					
-				self.pointerWasInside = self.pointerIsInside
-				
-			return self.pointerIsInside
-				
 		def touchDown (*args):
-			if getPointerIsInside ():					
+			if self.getPointerIsInside ():			
 				self.touchDownArgs = args
 				
 				Clock.unschedule (self.evaluateTaps)
 				Clock.schedule_once (self.evaluateTaps, 0.5)
 				
-				result = self.pointerDown ()
-				
 				if hasattr (self.widget, 'focus') and self.widget.focus and not self.pointerIsInside:
 					self.widget.focus = False
 					
-				return result
-					
+				return self.pointerDown ()
+
 		self.widget.bind (on_touch_down = touchDown)
 
 		def touchMove (*args):	# Only called if pointer is went down inside self.widget
-			if getPointerIsInside ():
+			if self.getPointerIsInside ():		
 				if app.dragObject.dragging:
 					app.dragObject.move ()
 				else:
 					if app.dragObject.armedForDrag and xDistance (app.pointerPosition, app.pointerWentDownPosition) > app.dragDistance:
-						Clock.schedule_once (lambda *args: self.pointerStartDrag ())	# Wait until most recent selection has been processsed
-						
+						Clock.schedule_once (lambda *args: self.pointerDrag (), 0.1)	# Wait until most recent selection has been processed
+			
+				return self.pointerMove ()
+			
 		self.widget.bind (on_touch_move = touchMove)
 		
-		def touchUp (*args):
-			if getPointerIsInside ():
+		def touchUp (*args):	# Only called if pointer is went down inside self.widget
+			if self.getPointerIsInside ():			
 				if args [1] .time_start > touchUp.time:	# Some on_touch_up events accidentally arrive twice at the same widget
 					touchUp.time = args [1] .time_start
-					
-					app.dragObject.armedForDrag = True
-					result = self.pointerUp ()
-			
-					if hasattr (self, 'dropLink'):
-						if app.dragObject.dragging:
-							app.dragObject.dropView = self
-							self.dropLink.read ()	# Should be first, not only because of error handling
-							app.dragObject.dragView.dragLink.read ()	# Should be last
-							app.dragObject.reset ()
-								
-					return result
-						
+					return self.pointerUp ()
+				
 		touchUp.time = -1
 			
 		self.widget.bind (on_touch_up = touchUp)
-										
-		def mousePos (*args):	
-			if getPointerIsInside ():
-				self.pointerMove ()
-				
-		Window.bind (mouse_pos = mousePos)
-										
+
 		if hasattr (self.widget, 'focus'):
 			def focus (*args):
 				if self.widget.focus:
@@ -318,6 +329,35 @@ class ViewBase (object):
 			self.widget.bind (focus = focus)
 			
 		return self.widget
+		
+	def touchDownHot (self):
+		self.pointerDownHot ()
+		
+	def touchMoveHot (self):
+		self.pointerMoveHot ()
+		
+	def touchUpHot (self):
+		app.dragObject.armedForDrag = True
+		
+		if app.dragObject.dragging:
+			self.pointerDrop ()
+			app.dragObject.dropped = True
+			
+		self.pointerUpHot ()	# Set pointed item to None only after the drop
+		app.dragObject.dropped = False
+			
+	def getPointerIsInside (self):
+		self.pointerIsInside = self.widget.collide_point (*self.widget.to_parent (*self.widget.to_widget (*app.pointerPosition)))
+		
+		if self.pointerIsInside != self.pointerWasInside:
+			if self.pointerIsInside:
+				self.pointerEnter ()
+			else:
+				self.pointerLeave ()	# Sometimes arrives later than entering the neighbour, but delaying the enter can also cause problems
+				
+			self.pointerWasInside = self.pointerIsInside
+			
+		return self.pointerIsInside
 		
 	def createDragDropLinks (self, mainDataNode):
 		def fallibleDropResultGetter ():
@@ -357,34 +397,46 @@ class ViewBase (object):
 				
 	# Methods to override
 	
-	def pointerMove (self):	# Called for each widget and any button status
+	def pointerDown (self):
 		pass
 		
-	def pointerDown (self):	# Called for each widget
+	def pointerDown0 (self):
 		pass
 		
-	def pointerDown0 (self):	# Called for each widget
+	def pointerDown1 (self):
 		pass
 		
-	def pointerDown1 (self):	# Called for each widget
+	def pointerDown2 (self):
 		pass
 		
-	def pointerDown2 (self):	# Called for each widget
+	def pointerDown3 (self):
 		pass
 		
-	def pointerDown3 (self):	# Called for each widget
+	def pointerDownHot (self):
 		pass
 		
-	def pointerUp (self):	# Called for each widget
+	def pointerMove (self):
 		pass
 				
-	def pointerEnter (self):	# Called for any button status
+	def pointerMoveHot (self):
 		pass
 		
-	def pointerLeave (self):	# Called for any button status
+	def pointerUp (self):
+		pass
+						
+	def pointerUpHot (self):
 		pass
 		
-	def pointerStartDrag (self):	# Called for each widget
+	def pointerEnter (self):
+		pass
+		
+	def pointerLeave (self):
+		pass
+		
+	def pointerDrag (self):
+		pass
+		
+	def pointerDrop (self):
 		pass
 		
 	def focusIn (self):
@@ -838,10 +890,6 @@ class TreeView (ViewBase):
 		if self.otherActionNode:
 			self.otherActionNode.change (None, True)
 			
-	def pointerStartDrag (self):
-		if self.selectedPathNode.new:
-			app.dragObject.startDrag (dragView = self)
-			
 	def pointerMove (self):
 		self.pointedTreeViewNode = self.widget.get_node_at_pos (self.widget.to_parent (*self.widget.to_widget (*app.pointerPosition)))
 			
@@ -858,6 +906,13 @@ class TreeView (ViewBase):
 				app.dragObject.restartDrop (dropView = self)
 			
 			self.oldPointedTreeViewNode = self.pointedTreeViewNode
+			
+	def pointerDrag (self):
+		if self.selectedPathNode.new:
+			app.dragObject.drag (dragView = self)
+			
+	def pointerDrop (self):
+		app.dragObject.drop (dropView = self)
 										
 	def resizeFont (self):
 		ViewBase.resizeFont (self)
@@ -973,10 +1028,10 @@ class TreeView (ViewBase):
 			
 		return False
 		
-class ListHeadWidget (ColoredLabel, ViewWidget):
+class ListHeadWidget (ViewWidget, ColoredLabel):
 	def __init__ (self, **args):		
-		ColoredLabel.__init__ (self, backgroundColor = (0, 0, 0.2, 1))
 		ViewWidget.__init__ (self)
+		ColoredLabel.__init__ (self, backgroundColor = (0, 0, 0.2, 1))
 		self.listView = args ['listView']
 		self.fieldIndex = args ['fieldIndex']
 		self.max_lines = 1
@@ -990,16 +1045,37 @@ class ListHeadWidget (ColoredLabel, ViewWidget):
 						
 		self.bind (size = onSize)
 		
-		def pointerDown (*args):
+	def pointerUpHot (self):
+		if not app.dragObject.dropped:
 			self.listView.sortColumnNumberLink.read (self.fieldIndex)
-			self.listView.scheduleReadPointedList (None)
-		
-		def pointerMove (*args):
-			self.listView.scheduleReadPointedList (None)
-			
+
+	def pointerDrop (self):
+		app.dragObject.drop (dropView = self.listView)
+					
 	def getGrossWidth (self):
-		return self.width + self.extraWidth	
+		return self.width + self.extraWidth
+		
+class ListHeaderWidget (ViewWidget, BoxLayout):
+	def __init__ (self, **args):
+		ViewWidget.__init__ (self)
+		BoxLayout.__init__ (self, **args)
+		self.listView = args ['listView']
+		
+	def setBold (self, state):
+		for listHeadWidget in self.listView.listHeadWidgets:
+			listHeadWidget.bold = state
+		
+	def pointerUp (self):
+		self.setBold (False)
+		
+	def pointerEnter (self):
+		self.setBold (True)
+		self.listView.justSelected = False
+		self.listView.pointedListLink.read (None)
 			
+	def pointerLeave (self):
+		self.setBold (False)
+		
 class ListItemWidget (ViewWidget, ListItemButton):	# ListItemButton must be last, unclear why	
 	def __init__ (self, **args):
 		self.listView = args ['listView']
@@ -1015,9 +1091,9 @@ class ListItemWidget (ViewWidget, ListItemButton):	# ListItemButton must be last
 		self.size_hint_x = None
 		self.bind (size = self.onSize)
 		
-		app.mainView.resizeFontOfTarget (self)	
-				
-	def pointerDown (self):	# Selection is allowed no matter what
+		app.mainView.resizeFontOfTarget (self)
+		
+	def pointerDown (self):	# User pointerDown rather than pointerDownHot, since the latter is not called if ordinary Kivy selection is blocked
 		if not self.listView.listNode.new [self.rowIndex] in self.listView.selectedListNode.new:
 			if self.listView.multiSelect:
 				selectedList = [item for index, item in enumerate (self.listView.listNode.new) if item in self.listView.selectedListNode.new or index == self.rowIndex]
@@ -1027,21 +1103,28 @@ class ListItemWidget (ViewWidget, ListItemButton):	# ListItemButton must be last
 			self.listView.selectedListNode.change (selectedList)
 			self.listView.justSelected = True
 			
-		return True	# Prevent (de)selection via Kivy
+	def pointerUp (self):
+		return True	# Block ordinary Kivy (de)selection
 			
-		self.listView.scheduleReadPointedList (self.rowIndex)
-			
-	def pointerMove (self):
-		self.listView.scheduleReadPointedList (self.rowIndex)
-			
-	def pointerUp (self):	
+	def pointerUpHot (self):
 		if self.listView.multiSelect and not self.listView.justSelected and app.pointerWentUpInterval > app.listSelectionInterval and not app.dragObject.dragging and self.listView.listNode.new [self.rowIndex] in self.listView.selectedListNode.new:
 			selectedList = self.listView.selectedListNode.new [:]
 			selectedList.remove (self.listView.listNode.new [self.rowIndex])				
 			self.listView.selectedListNode.change (selectedList)
-			
+
 		self.listView.justSelected = False
+		self.listView.pointedListLink.read (None)
+		
+	def pointerEnter (self):
+		self.listView.pointedListLink.read (self.rowIndex)
 			
+	def pointerDrag (self):
+		if self.listView.selectedListNode.new:
+			app.dragObject.drag (dragView = self.listView)
+			
+	def pointerDrop (self):
+		app.dragObject.drop (dropView = self.listView)
+				
 	def onSize (self, *args):	# Member, since it is also called by ListView.adaptItemSizes, initiated by a head resize
 		self.width = self.listView.listHeadWidgets [self.fieldIndex] .getGrossWidth ()
 		self.text_size = (self.width, None)		
@@ -1049,7 +1132,13 @@ class ListItemWidget (ViewWidget, ListItemButton):	# ListItemButton must be last
 # <list> = [<item>, ...]
 # <item> = <field> | [<field>, ...]
 
-class ListWidget (KivyListView):
+class ListWidget (ViewWidget, KivyListView):	# ListWidget extends beyond its lower boundary, so unsuitable for setting pointedList to None when leaving
+	def __init__ (self, *args, **kwargs):
+		ViewWidget.__init__ (self)
+		KivyListView.__init__ (self, *args, **kwargs)
+		self.listView = kwargs ['listView']
+		
+'''		
 	def on_touch_down (self, *args):
 		KivyListView.on_touch_down (self, *args)
 		return False
@@ -1060,12 +1149,10 @@ class ListWidget (KivyListView):
 
 	def on_touch_up (self, *args):
 		KivyListView.on_touch_up (self, *args)
-		return False		
-		
+		return False
+'''
+
 class ListView (ViewBase):
-	pointedItemIndex = None
-	def readPointedList (*args):
-		ListView.currentListView.pointedListLink.read ()
 	
 	# --- Constructor and widget creation method, like supported by all views
 
@@ -1113,8 +1200,7 @@ class ListView (ViewBase):
 		self.tweaker = None
 		
 		self.listHeadWidgets = [None for header in self.headerNode.new]
-		self.justSelected = False
-		self.touchUpTime = -1		
+		self.justSelected = False		
 				
 	def bareCreateWidget (self):
 		def rowBuilder (rowIndex, item):
@@ -1136,7 +1222,8 @@ class ListView (ViewBase):
 		self.listAdapter = ListAdapter (data = [], selection_mode = 'multiple' if self.multiSelect else 'single', args_converter = rowBuilder, cls = CompositeListItem, sorted_keys = [])
 		
 		self.widget = BoxLayout (orientation = 'vertical')
-		self.headerWidget = BoxLayout (height = 25, size_hint_y = None)
+#		self.headerWidget = BoxLayout (height = 25, size_hint_y = None)
+		self.headerWidget = ListHeaderWidget (listView = self, height = 25, size_hint_y = None)
 		for index, head in enumerate (self.headerNode.new):
 			listHeadWidget = ListHeadWidget (text = '', height = 25, size_hint_y = None, listView = self, fieldIndex = index)
 			if index == len (self.headerNode.new) - 1:
@@ -1147,7 +1234,7 @@ class ListView (ViewBase):
 				self.headerWidget.add_widget (splitter)
 				
 		self.widget.add_widget (self.headerWidget)
-		self.kivyListView = ListWidget (adapter = self.listAdapter)
+		self.kivyListView = ListWidget (listView = self, adapter = self.listAdapter)
 		self.widget.add_widget (self.kivyListView)
 		
 		def bareWriteHeader ():
@@ -1202,7 +1289,7 @@ class ListView (ViewBase):
 		self.selectedListLink.write ()
 		
 		def bareReadPointedList (params):
-			self.pointedListNode.change ([self.listNode.new [ListView.pointedItemIndex]] if ListView.pointedItemIndex != None else [])
+			self.pointedListNode.change ([self.listNode.new [params [0]]] if params [0] != None else [])
 		
 		def bareWritePointedList ():
 			for itemIndex, item in enumerate (self.listNode.new):
@@ -1230,20 +1317,12 @@ class ListView (ViewBase):
 		self.sortColumnNumberLink = Link (self.sortColumnNumberNode, bareReadSortColumnNumber, None)
 		
 		self.createDragDropLinks (self.listNode)
-
-	def scheduleReadPointedList (self, pointedItemIndex):	
-		Clock.unschedule (ListView.readPointedList)	# No problem if nothing to unschedule
-
-		ListView.currentListView = self
-		ListView.pointedItemIndex = pointedItemIndex
-		
-		if ListView.pointedItemIndex == None: # Prevent forgetting to make pointedList empty if listView is left (else a newer schedule may override it)
-			Clock.schedule_once (ListView.readPointedList)
-		else:
-			Clock.schedule_once (ListView.readPointedList, app.pointedListItemSettleTime)
 		
 	# Overridden methods
-		
+	
+	def pointerUp (self):
+		return True	# Block ordinary Kivy (de)selection
+	
 	def pointerDown2 (self):
 		if self.actionNode:
 			self.actionNode.change (None, True)
@@ -1251,15 +1330,11 @@ class ListView (ViewBase):
 	def pointerDown3 (self):
 		if self.otherActionNode:
 			self.otherActionNode.change (None, True)
-		
-	def pointerStartDrag (self):
-		if self.selectedListNode.new:
-			app.dragObject.startDrag (dragView = self)	
-		
+			
 	def pointerLeave (self):
+		self.pointedListLink.read (None)	
 		self.justSelected = False
-		self.scheduleReadPointedList (None)
-		
+						
 	def resizeFont (self):
 		ViewBase.resizeFont (self)			
 		
@@ -1527,11 +1602,7 @@ class WindowViewBase (ViewBase):
 		self.clientView = clientView
 		self.captionNode = getNode (captionNode)
 		self.closeNode = getNode (closeNode)
-		
-	def updatePointerPosition (self, pointerPosition):
-		app.oldPointerPosition = app.pointerPosition
-		app.pointerPosition = pointerPosition
-				
+						
 	def bareCreateWidget (self):
 		self.createOuterWidget ()
 		
@@ -1553,26 +1624,6 @@ class WindowViewBase (ViewBase):
 			setCaption
 		)
 		self.captionLink.write ()
-
-		def updatePointerDown (*args):
-			self.updatePointerPosition (args [1] .pos)
-			app.pointerIsDown = True
-			app.pointerWentDownPosition = app.pointerPosition
-			app.previousPointerWentDownTime = app.pointerWentDownTime
-			app.pointerWentDownTime = args [1] .time_start
-			app.pointerWentDownInterval = app.pointerWentDownTime - app.previousPointerWentDownTime
-		
-		self.innerWidget.bind (on_touch_down = updatePointerDown)
-				
-		def updatePointerUp (*args):
-			self.updatePointerPosition (args [1] .pos)
-			app.pointerIsDown = False
-			app.pointerWentUpPositition = app.pointerPosition
-			app.previousPointerWentUpTime = app.pointerWentUpTime
-			app.pointerWentUpTime = args [1] .time_start
-			app.pointerWentUpInterval = app.pointerWentUpTime - app.previousPointerWentUpTime
-		
-		self.innerWidget.bind (on_touch_up = updatePointerUp)
 		
 class ModalView (WindowViewBase):
 	def __init__ (
@@ -1596,8 +1647,8 @@ class ModalView (WindowViewBase):
 		app.mainView.widget.bind (size = adaptSize)
 		
 		self.widget.bind (on_open = app.mainView.dispatchResizeFont)
-		self.widget.bind (on_open = lambda *args: app.mainView.pushRootView (self))
-		self.widget.bind (on_dismiss = lambda *args: app.mainView.popRootView ())	
+		self.widget.bind (on_open = lambda *args: app.pushRootView (self))
+		self.widget.bind (on_dismiss = lambda *args: app.popRootView ())	
 		
 		if self.closeNode:
 			self.closeNode.addAction (self.widget.dismiss)	# Don't use a link, since closing can't be rolled back
@@ -1623,34 +1674,29 @@ class MainView (WindowViewBase, App):	# App must be last, unclear why
 		self.fontScale = fontScale
 		
 		app.mainView = self
-		self.rootViews = [self]
-		self.pointerLabelVisible = False
+		app.pushRootView (self)
 		
+		self.pointerLabelVisible = False
+				
 		def movePointerLabel ():
-			widget = self.rootViews [-1] .pointerLabelSurface
+			widget = app.rootViews [-1] .pointerLabelSurface
 			self.pointerLabel.pos = widget.to_parent (*widget.to_widget (*app.pointerPosition))
 				
 		app.movePointerLabel = movePointerLabel
 		
 		def setPointerLabel (text = None):
 			if text is None:
-				self.rootViews [-1] .pointerLabelSurface.remove_widget (self.pointerLabel)
+				app.rootViews [-1] .pointerLabelSurface.remove_widget (self.pointerLabel)
 				self.pointerLabelVisible = False
 				self.pointerLabelText = ''
 			else:
 				self.pointerLabel.text = text
 				if not self.pointerLabelVisible:
-					self.rootViews [-1] .pointerLabelSurface.add_widget (self.pointerLabel)
+					app.rootViews [-1] .pointerLabelSurface.add_widget (self.pointerLabel)
 					self.pointerLabelVisible = True
 					
 		app.setPointerLabel = setPointerLabel
-		
-	def pushRootView (self, rootView):
-		self.rootViews.append (rootView)
-	
-	def popRootView (self):
-		self.rootViews.pop ()
-		
+				
 	def createOuterWidget (self):
 		self.widget = FloatLayout ()
 		self.titleWidget = self
@@ -1661,12 +1707,45 @@ class MainView (WindowViewBase, App):	# App must be last, unclear why
 									
 		if self.closeNode:
 			self.closeNode.addAction (self.stop)	# Don't use a link, since closing can't be rolled back
-			
+		
 		def mousePos (*args):	
-			self.updatePointerPosition (args [1])
+			app.updatePointerPosition (args [1])
 				
-		Window.bind (mouse_pos = mousePos)			
+		Window.bind (mouse_pos = mousePos)
+		
+		def touchDown (*args):
+			app.updatePointerPosition (args [1] .pos)
+			app.pointerIsDown = True
+			app.pointerWentDownPosition = app.pointerPosition
+			app.previousPointerWentDownTime = app.pointerWentDownTime
+			app.pointerWentDownTime = args [1] .time_start
+			app.pointerWentDownInterval = app.pointerWentDownTime - app.previousPointerWentDownTime		
+		
+			if app.getHotView ():
+				Clock.schedule_once (lambda *args: app.hotView.touchDownHot ())
+			
+		Window.bind (on_touch_down = touchDown)
+							
+		def touchMove (*args):
+			app.updatePointerPosition (args [1] .pos)
+			if app.getHotView ():
+				Clock.schedule_once (lambda *args: app.hotView.touchMoveHot ())
+								
+		Window.bind (on_touch_move = touchMove)
+		
+		def touchUp (*args):
+			app.updatePointerPosition (args [1] .pos)
+			app.pointerIsDown = False
+			app.pointerWentUpPositition = app.pointerPosition
+			app.previousPointerWentUpTime = app.pointerWentUpTime
+			app.pointerWentUpTime = args [1] .time_start
+			app.pointerWentUpInterval = app.pointerWentUpTime - app.previousPointerWentUpTime			
+			
+			if app.getHotView ():
+				Clock.schedule_once (lambda *args: app.hotView.touchUpHot ())	# Should be after touchDown
 
+		Window.bind (on_touch_up = touchUp)		
+		
 	def dispatchResizeFont (self, *args):
 		self.widget.dispatch ('on_resize_font', args)
 
