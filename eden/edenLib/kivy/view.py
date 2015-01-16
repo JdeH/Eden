@@ -282,11 +282,8 @@ class ViewBase (object):
 				Clock.unschedule (self.evaluateTaps)
 				Clock.schedule_once (self.evaluateTaps, 0.5)
 				
-				if hasattr (self.widget, 'focus') and self.widget.focus and not self.pointerIsInside:
-					self.widget.focus = False
-					
 				return self.pointerDown ()
-
+					
 		self.widget.bind (on_touch_down = touchDown)
 
 		def touchMove (*args):	# Only called if pointer is went down inside self.widget
@@ -328,6 +325,12 @@ class ViewBase (object):
 					
 			self.widget.bind (focus = focus)
 			
+		def windowTouchDown (*args):
+			if hasattr (self.widget, 'focus') and self.widget.focus and not self.getPointerIsInside ():
+				self.widget.focus = False		
+			
+		Window.bind (on_touch_down = windowTouchDown)
+		
 		return self.widget
 		
 	def touchDownHot (self):
@@ -866,7 +869,7 @@ class TreeView (ViewBase):
 			lambda params: self.visibleTreeLink.writing or self.selectedPathNode.change (self.pathFromTreeViewNode (self.widget.get_node_at_pos (self.widget.to_parent (*self.widget.to_widget (*app.pointerPosition))))),
 			bareWriteSelectedPath
 		)
-		# Leave self.selectedPathLink.writeBack == True to properly deal with rightclicks. Probably bug in WinForms, because not needed with ListView.
+		self.selectedPathLink.writeBack == False
 		self.selectedPathLink.write ()
 					
 		self.visiblePathNode = Node ([])			
@@ -881,6 +884,7 @@ class TreeView (ViewBase):
 
 	def pointerDown (self): # Use this event rather than selected_node, because it is the only event already occurring at mouse down, so before a drag
 		self.selectedPathLink.read ()
+		print 777, self.selectedPathNode.new
 			
 	def pointerDown2 (self):
 		if self.actionNode:
@@ -1093,25 +1097,25 @@ class ListItemWidget (ViewWidget, ListItemButton):	# ListItemButton must be last
 		
 		app.mainView.resizeFontOfTarget (self)
 		
+	def on_touch_down (self, *args):
+		pass	# Block ordinary Kivy selection by overriding on_touch_down method from ListItemButton
+		
 	def pointerDown (self):	# User pointerDown rather than pointerDownHot, since the latter is not called if ordinary Kivy selection is blocked
 		if not self.listView.listNode.new [self.rowIndex] in self.listView.selectedListNode.new:
 			if self.listView.multiSelect:
 				selectedList = [item for index, item in enumerate (self.listView.listNode.new) if item in self.listView.selectedListNode.new or index == self.rowIndex]
 			else:
 				selectedList = [self.listView.listNode.new [self.rowIndex]]
-				
+								
 			self.listView.selectedListNode.change (selectedList)
 			self.listView.justSelected = True
-			
-	def pointerUp (self):
-		return True	# Block ordinary Kivy (de)selection
 			
 	def pointerUpHot (self):
 		if self.listView.multiSelect and not self.listView.justSelected and app.pointerWentUpInterval > app.listSelectionInterval and not app.dragObject.dragging and self.listView.listNode.new [self.rowIndex] in self.listView.selectedListNode.new:
 			selectedList = self.listView.selectedListNode.new [:]
 			selectedList.remove (self.listView.listNode.new [self.rowIndex])				
 			self.listView.selectedListNode.change (selectedList)
-
+			
 		self.listView.justSelected = False
 		self.listView.pointedListLink.read (None)
 		
@@ -1137,20 +1141,6 @@ class ListWidget (ViewWidget, KivyListView):	# ListWidget extends beyond its low
 		ViewWidget.__init__ (self)
 		KivyListView.__init__ (self, *args, **kwargs)
 		self.listView = kwargs ['listView']
-		
-'''		
-	def on_touch_down (self, *args):
-		KivyListView.on_touch_down (self, *args)
-		return False
-
-	def on_touch_move (self, *args):
-		KivyListView.on_touch_move (self, *args)
-		return False
-
-	def on_touch_up (self, *args):
-		KivyListView.on_touch_up (self, *args)
-		return False
-'''
 
 class ListView (ViewBase):
 	
@@ -1222,7 +1212,6 @@ class ListView (ViewBase):
 		self.listAdapter = ListAdapter (data = [], selection_mode = 'multiple' if self.multiSelect else 'single', args_converter = rowBuilder, cls = CompositeListItem, sorted_keys = [])
 		
 		self.widget = BoxLayout (orientation = 'vertical')
-#		self.headerWidget = BoxLayout (height = 25, size_hint_y = None)
 		self.headerWidget = ListHeaderWidget (listView = self, height = 25, size_hint_y = None)
 		for index, head in enumerate (self.headerNode.new):
 			listHeadWidget = ListHeadWidget (text = '', height = 25, size_hint_y = None, listView = self, fieldIndex = index)
@@ -1320,9 +1309,6 @@ class ListView (ViewBase):
 		
 	# Overridden methods
 	
-	def pointerUp (self):
-		return True	# Block ordinary Kivy (de)selection
-	
 	def pointerDown2 (self):
 		if self.actionNode:
 			self.actionNode.change (None, True)
@@ -1330,7 +1316,7 @@ class ListView (ViewBase):
 	def pointerDown3 (self):
 		if self.otherActionNode:
 			self.otherActionNode.change (None, True)
-			
+	
 	def pointerLeave (self):
 		self.pointedListLink.read (None)	
 		self.justSelected = False
@@ -1714,7 +1700,7 @@ class MainView (WindowViewBase, App):	# App must be last, unclear why
 		Window.bind (mouse_pos = mousePos)
 		
 		def touchDown (*args):
-			app.updatePointerPosition (args [1] .pos)
+			# Don't call app.updatePointerPosition (args [1] .pos), since here it always returns (0, 0)
 			app.pointerIsDown = True
 			app.pointerWentDownPosition = app.pointerPosition
 			app.previousPointerWentDownTime = app.pointerWentDownTime

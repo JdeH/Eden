@@ -59,37 +59,38 @@ def getNodes (kind):
 	
 	return {'currentItems': currentItemsNode, 'openMenu': openMenuNode, 'openDialog': openDialogNode, 'result': resultNode}
 	
-pointedListNodes = getNodes ('pointed list')
-selectedListNodes = getNodes ('selected list')	
+singleSelectListNodes = getNodes ('single select list')
+multiSelectListNodes = getNodes ('multi select list')	
 treeNodes = getNodes ('tree')	
 	
 mainView = MainView (
 	HSplitView ([
 		VSplitView ([
 			ListView (
-				headerNode = ['One pointed star'],
+				headerNode = ['One selected star'],
 				listNode = ['Alamak', 'Mirach', 'Sirrah'],
-				pointedListNode = pointedListNodes ['currentItems'],
-				actionNode = pointedListNodes ['openMenu'],
-				otherActionNode = pointedListNodes ['openDialog']
+				selectedListNode = singleSelectListNodes ['currentItems'],
+				actionNode = singleSelectListNodes ['openMenu'],
+				otherActionNode = singleSelectListNodes ['openDialog'],
+				multiSelect = False
 			),
-			LabelView (captionNode = pointedListNodes ['result'])
+			LabelView (captionNode = singleSelectListNodes ['result'])
 		]),
 		VSplitView ([
 			ListView (
 				headerNode = ['Multiple selected planets'],
 				listNode = ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'],
-				selectedListNode = selectedListNodes ['currentItems'],
-				actionNode = selectedListNodes ['openMenu'],
-				otherActionNode = selectedListNodes ['openDialog']
+				selectedListNode = multiSelectListNodes ['currentItems'],
+				actionNode = multiSelectListNodes ['openMenu'],
+				otherActionNode = multiSelectListNodes ['openDialog']
 			),
-			LabelView (captionNode = selectedListNodes ['result'])
+			LabelView (captionNode = multiSelectListNodes ['result'])
 		]),
 		VSplitView ([
 			TreeView (
 				rootNode = 'One path from sun',
 				treeNode = [('Earth', ['Moon']), ('Mars', ['Phoebos', 'Deimos']), ('Jupiter', ['Io', 'Europa', 'Ganymede', 'Callisto']), ('Saturn', ['Dione', 'Tethys', 'Rhea', 'Titan'])],
-				pointedPathNode = treeNodes ['currentItems'],
+				selectedPathNode = treeNodes ['currentItems'],
 				actionNode = treeNodes ['openMenu'],
 				otherActionNode = treeNodes ['openDialog']
 			),
