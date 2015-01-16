@@ -165,6 +165,18 @@ class FileDialog (Module):
 		def onOk ():
 			if self.pathIsDirectoryNode.old:	# If a directory was selected before the button connected to okNode was clicked (so the old value, before the current event),
 				os.chdir (self.pathNode.old)	# then the old path, visible in the header of the dialog before the curent event, is used as the new working directory.
+			elif self.save:
+				outputFile = open (self.fileNameNode.new, 'wb')
+				outputFile.write (app.main.contentNode.new)
+				outputFile.close ()
+			else:
+				inputFile = open (self.fileNameNode.new, 'rb')
+				
+				app.main.contentNode.follow (inputFile.read ())
+				# Method 'follow' imperatively sets the value of a node as part of the current event, nodes that were already computed hence will not be recomputed.
+				# Method 'change' imperatively sets the value of a node as part of a new event, nodes that were already computed hence will be recomputed.
+				
+				inputFile.close ()
 		
 		self.okNode.addAction (onOk) 
 		

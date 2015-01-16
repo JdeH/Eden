@@ -1617,17 +1617,19 @@ class ModalView (WindowViewBase):
 		clientView = None,
 		captionNode = 'Eden ModalView',
 		closeNode = None,
-		relativeSize = (1, 1)
+		relativeSize = (1, 1),
+		autoDismiss = False
 	):
 		WindowViewBase.__init__ (self, clientView, captionNode, closeNode)
 		self.relativeSize = relativeSize
+		self.autoDismiss = autoDismiss
 		
 	def createOuterWidget (self):
 		def adaptSize (*args):
 			self.widget.height = app.mainView.widget.height + 15
 			self.widget.width = app.mainView.widget.width + 25
 
-		self.widget = Popup (size_hint = self.relativeSize, auto_dismiss = False)
+		self.widget = Popup (size_hint = self.relativeSize, auto_dismiss = self.autoDismiss)
 		self.titleWidget = self.widget
 		adaptSize ()
 		app.mainView.widget.bind (size = adaptSize)

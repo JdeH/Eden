@@ -50,6 +50,7 @@ class Main (Module):
 	def defineNodes (self):
 		self.addNode (Node (None), 'openFileMenuNode')	# Accessible as self.openFileMenuNode, and available for module level tracing, see module FileDialog for example of this.
 		self.addNode (Node (None), 'closeFileMenuNode')
+		self.addNode (Node (None), 'newNode')
 		
 		self.addNode (Node (None), 'openHelpMenuNode')
 		self.addNode (Node (None), 'closeHelpMenuNode')
@@ -61,27 +62,31 @@ class Main (Module):
 	def defineDependencies (self):
 		def getContent ():
 			try:
-				if app.asciiPane.contentNode.triggered:
+				if self.newNode.triggered:
+					return bytearray ()
+				elif app.asciiPane.contentNode.triggered:
 					return bytearray (app.asciiPane.contentNode.new)
 				else:
 					return bytearray.fromhex (app.hexPane.contentNode.new)
 			except:	# Invalid ascii or hex, preserve old content
 				return self.contentNode.old
 	
-		self.contentNode.dependsOn ([app.hexPane.contentNode, app.asciiPane.contentNode], getContent)
+		self.contentNode.dependsOn ([self.newNode, app.hexPane.contentNode, app.asciiPane.contentNode], getContent)
 		
-		self.closeFileMenuNode.dependsOn ([app.loadFileDialog.openNode, app.saveFileDialog.openNode])
+		self.closeFileMenuNode.dependsOn ([self.newNode, app.loadFileDialog.openNode, app.saveFileDialog.openNode])
 		self.closeHelpMenuNode.dependsOn ([app.aboutDialog.openNode])
 		
 	def defineViews (self):
 		self.fileMenuView = ModalView (
 			VGridView ([
+				ButtonView (captionNode = 'New', actionNode = self.newNode),
 				ButtonView (captionNode = 'Load', actionNode = app.loadFileDialog.openNode),
 				ButtonView (captionNode = 'Save', actionNode = app.saveFileDialog.openNode)
 			]),
 			captionNode = 'File',
 			closeNode = self.closeFileMenuNode,
-			relativeSize = (0.125, 0.15)
+			relativeSize = (0.125, 0.19),
+			autoDismiss = True
 		)
 	
 		self.helpMenuView = ModalView (
@@ -90,7 +95,8 @@ class Main (Module):
 			]),
 			captionNode = 'Help',
 			closeNode = self.closeHelpMenuNode,
-			relativeSize = (0.125, 0.11)
+			relativeSize = (0.125, 0.11),
+			autoDismiss = True
 		)
 	
 		return MainView (	# The defineViews clause should return the module's View, if it has one.
