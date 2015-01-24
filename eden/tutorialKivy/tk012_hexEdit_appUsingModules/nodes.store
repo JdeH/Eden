@@ -4,13 +4,13 @@ p2
 c__builtin__
 bytearray
 p3
-(VDit is een test
+(VTHIS IS A TEST UVWXYZ[
 S'latin-1'
 tRp4
 tp5
 a(S'loadFileDialog.directoryNode'
 p6
-S'D:\\activ_tosh\\geatec\\QQuick\\Eden\\eden\\tutorialKivy\\tk012_hexEdit_appUsingModules'
+S'D:/activ_tosh/geatec/QQuick/Eden/eden/tutorialKivy/tk012_hexEdit_appUsingModules'
 p7
 tp8
 a(S'loadFileDialog.fileNameNode'
@@ -20,7 +20,7 @@ p10
 tp11
 a(S'saveFileDialog.directoryNode'
 p12
-S'D:\\activ_tosh\\geatec\\QQuick\\Eden\\eden\\tutorialKivy\\tk012_hexEdit_appUsingModules'
+S'D:/activ_tosh/geatec/QQuick/Eden/eden/tutorialKivy/tk012_hexEdit_appUsingModules'
 p13
 tp14
 a(S'saveFileDialog.fileNameNode'

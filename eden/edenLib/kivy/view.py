@@ -884,7 +884,6 @@ class TreeView (ViewBase):
 
 	def pointerDown (self): # Use this event rather than selected_node, because it is the only event already occurring at mouse down, so before a drag
 		self.selectedPathLink.read ()
-		print 777, self.selectedPathNode.new
 			
 	def pointerDown2 (self):
 		if self.actionNode:

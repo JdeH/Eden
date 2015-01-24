@@ -11,7 +11,10 @@
 from .base import *
 from .util import *
 
-if 'WinForms' in application.platform:
+if 'TkInter' in application.platform:
+	from .tkInter.view import *
+
+elif 'WinForms' in application.platform:
 	from .winForms.panel import *
 			
 elif 'Kivy' in application.platform:

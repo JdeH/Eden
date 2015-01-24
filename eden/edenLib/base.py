@@ -29,7 +29,11 @@ app = application
 application.edenLibDirectory = os.path.dirname (os.path.abspath (__file__)) .replace ('\\', '/')
 application.edenDirectory = '/'.join (application.edenLibDirectory.split ('/')[:-1])
 
+'''
 if 'ironpython' in application.edenDirectory.lower ():
 	application.platform = ['WinForms']
 else:
 	application.platform = ['Kivy']
+'''
+
+application.platform = ['TkInter']

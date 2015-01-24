@@ -14,7 +14,10 @@ import inspect
 
 edenPathMarker = '/org/qquick/'
 
-if 'WinForms' in application.platform:
+if 'TkInter' in application.platform:
+	from .tkInter.util import *
+
+elif 'WinForms' in application.platform:
 	from .winForms.util import *
 			
 elif 'Kivy' in application.platform:

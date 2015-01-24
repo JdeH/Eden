@@ -1,0 +1,11 @@
+Lines can always be joined if they have a half round top.
+The whole line including the tops can be drawn using a line loop.
+The most 3D way of drawing lines is making them cilinders with a half spherical top.
+They will then be drawn in perspective.
+
+Viewed as such, lines are an example of a 3D primitive.
+So a collection of 3D primitives is needed, than can be arbitrarily position in space.
+
+Beam, Cilinder and Sphere should do, if the primitives are allowed to intersect.
+But that wastes time and space.
+Adding Half-elipsoid to the

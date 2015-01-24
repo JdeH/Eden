@@ -8,7 +8,8 @@ Licence
 =======
 
 QQuick licence, see http://www.qquick.org .
-N.B. The Eden version on that site is obsolete, the newest version is on https://pypi.python.org .
+N.B. The Eden version on that site is obsolete, the newest version is on https://pypi.python.org
+
 
 Purpose
 =======
@@ -16,48 +17,20 @@ Purpose
 Eden is a library that allows rapid declarative construction of applications.
 
 
-Installation
-============
+Demo
+====
 
-To prevent name conflicts with future modules, Eden is now imported as follows:
-
-	from org.qquick.eden import *
-
-Alternatively, you can import Eden e.g. as follows:
-
-	import org.qquick.eden as eden
-
-To make this work, install Eden as follows:
-
-In the 'site-packages' or the 'dist-packages' directory of the Python version you wish to use, make a subdirectory 'org' containing an empty file '__init__.py'.
-Only do so if a directory by that name and with such a file does not already exist.
-
-In that subdirectory 'org' make a subdirectory 'qquick' containing an empty file '__init__.py'.
-Only do so if a directory by that name and with such a file does not already exist.
-
-In that subdirectory 'org.qquick' put the 'eden' (lowercase!) subdirectory of Eden.
-If you want to install Eden under multiple Python versions, e.g. IronPython 2.7 and CPython 2.7, you can use a symlink named 'eden' (so NOT a shortcut, google for 'mklink').
-
-N.B. 1
-Java style URL based unique package names like 'org.qquick.eden' are a bit of a hack in Python 2.7, but are de-facto fully supported in Python >= 3.3.
-This is the result of improvements in the module search mechanism, which will now search multiple 'org' subdirectories for 'qquick' and not give up after the first one encountered.
-The decision to use URL based package names is based on the ever growing set of standard modules that are becoming part of the Python distribution.
-This has already resulted in name clashes with packages that were written before a standard module by the same name was introduced.
- 
-N.B. 2
-The WinForms (stable) version works with IronPython 2.7.
-The Kyvi version (under development) works with CPython 2.7 and Kivy 1.8 you can e.g. use the Python 2.7 that comes with Portable Kivy for Windows.
-The Kyvi version should also run under Linux, although that is only tested infrequently.
+http://www.youtube.com/watch?v=zN8OsrDfk98&fmt=22
 
 
 Recent changes
 ==============
 
 Kivy version:
-	Local menus, unique URL based package name
+	Modules, demo on YouTube
 
 WinForms version:
-	Unique URL based package name
+	None
 	
 	
 How does it work
@@ -108,10 +81,38 @@ Eden for IronPython + WinForms has been used for production programming for mult
 Eden for CPython + Kivy is in the early stages of development.
 
 
-Known bugs
-==========
+Installation
+============
 
-External drag and drop format incompatible with external cut and paste format.
+To prevent name conflicts with future modules, Eden is now imported as follows:
+
+	from org.qquick.eden import *
+
+Alternatively, you can import Eden e.g. as follows:
+
+	import org.qquick.eden as eden
+
+To make this work, install Eden as follows:
+
+In the 'site-packages' or the 'dist-packages' directory of the Python version you wish to use, make a subdirectory 'org' containing an empty file '__init__.py'.
+Only do so if a directory by that name and with such a file does not already exist.
+
+In that subdirectory 'org' make a subdirectory 'qquick' containing an empty file '__init__.py'.
+Only do so if a directory by that name and with such a file does not already exist.
+
+In that subdirectory 'org.qquick' put the 'eden' (lowercase!) subdirectory of Eden.
+If you want to install Eden under multiple Python versions, e.g. IronPython 2.7 and CPython 2.7, you can use a symlink named 'eden' (so NOT a shortcut, google for 'mklink').
+
+N.B. 1
+Java style URL based unique package names like 'org.qquick.eden' are a bit of a hack in Python 2.7, but are de-facto fully supported in Python >= 3.3.
+This is the result of improvements in the module search mechanism, which will now search multiple 'org' subdirectories for 'qquick' and not give up after the first one encountered.
+The decision to use URL based package names is based on the ever growing set of standard modules that are becoming part of the Python distribution.
+This has already resulted in name clashes with packages that were written before a standard module by the same name was introduced.
+ 
+N.B. 2
+The WinForms (stable) version works with IronPython 2.7.
+The Kyvi version (under development) works with CPython 2.7 and Kivy 1.8 you can e.g. use the Python 2.7 that comes with Portable Kivy for Windows.
+The Kyvi version should also run under Linux, although that is only tested infrequently.
 
 
 Getting started
